@@ -4,7 +4,7 @@ Honey Pot - machine who pretends to be another machine-honey pot itself
 monitor ports specified by plugins
 -plugins must contain all necessary information for capture
 save data 
--at least source/destination/ip/port/data exchanged
+-at least source/destination/ip/port/data exchanged  
 telnet and http
 
 Requires:
