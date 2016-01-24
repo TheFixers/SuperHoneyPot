@@ -1,0 +1,209 @@
+Notes from Class 21January2016
+These are the notes from class, I am typing them all up so that the information can more easily be manipulated.
+
+Honey Pot and Analytics
+
+Takes queries in SQL, convert to Json and use freeboard to display.
+
+Honey net project
+
+-Need backbone framework monitoring ports, need root for lower ports, but can use higher ports initially
+
+Ada fruit for Raspberry Pi Zero
+
+One click install, everybody can use it.
+Run on light weight heardware.
+
+Framework opens sockets - plugins on other end, accept connection and spawn connections related to ports.
+
+Class TelnetPlugin
+    def port
+    def run
+    def orm
+    
+We know where to put it, we know what to runNeed object resource mapper - need to put into SQL database
+
+Make plugin compatabililty correct
+Each plugincan have own table
+Source / Destination / IP Address / Port number
+Each has its own scheme
+
+Have to have ability to override port
+Must have configuration file, preferably alsoPython
+
+Class foo(telnet plugin)
+    def port
+    
+For every plugin, you will be listening to the related portUse TCP, no need for UCP, no DNS or vid/audio streaming.
+Each plugin will have its own request
+
+SQL - recommended, not enforced
+Use SQlite3
+Pure Honey Pot, just listening
+
+Username andPassword using for accessing SSH
+What attacks are being used
+
+Longer term, allow others to write own plugins.
+
+They would connect to port ....
+Would be sent Get URL
+        .....
+        .....
+        .....
+        {blank line}
+        record above, and send back 404
+
+OSSec has list of exploits and exploitDB
+Source / Destination / IP Address / Port Number / Content?
+
+Data analytics
+
+Take database and put a wrapper around it
+    Webservices - Json
+          DB
+          SQL
+          
+Do queries into the DB - How many attacks from Russia?
+
+Machine has two interfaces, public outward facing, private inward facing
+
+Get
+   Headers
+   Blank Line
+   --> Return 404
+   
+Longer term - write more sophisticated plugins, pretend to be IIX, apache, ...
+
+Tar Pit - take 3 minutes to respond, then 2 minutes, ....
+
+Web server - get command and give 404 
+Telnet - ask for username and password and say wrong 
+
+
+Python - maybe 2.7, if on Raspberry PI 
+
+.deb and .rpm - need to know what version
+
+Freeboard - javascript - will issue json requestsand get json requests 
+bohkeh - BOH K
+
+When starts up - starts plugins 
+ - will need to be in path, can be a single directory for now 
+ 
+ Hopes there is a wrapper to convert json and spits json out of a database 
+ 
+ Everythin in jplot can be done in freeboard 
+ 
+ Does the framework listen tothe ports, 
+    or do the plugins liisten to the port, 
+    if multiple plugins want to listen to the same port, 
+    or if they listen to different things
+    
+Put to different plugins?
+
+One plugin per port this semester
+
+Java too big for layer between DB and Json
+
+Database also on Raspberry Pi 
+Also as a part of the sameinstallation. 
+
+Python ships with web server. 
+
+Type of data will vary by plugin. 
+Either query plugin to get schema, or use ORM containers within plugin.  
+
+Use CPython outof the box - use interpreter, rather than compiled.  
+
+If plugins generic, use any orm, if generic orm, 
+  can plugin any database, eaasily switchable
+
+As long as you can display in a browserwith javascript and use in a raspberry pi 
+
+Req: Throw queries and turn in Json 
+Non-functional - type of database 
+  no need for a relational database 
+  
+Mop-up plugin - listen to ports and does nothing.
+ 
+Req: working telnet plugin and ssh 
+Good: mop-up, if not monitoring, monitor all, 
+  do accept and close, monitor for connection attempts 
+   3389 remote desktop - microsoft
+   ports - 0-65535
+   
+Method in every plugin is port - to tell what port 
+
+Orthagonal - plugin for mop-up, listen to ports
+
+Allow regular traffic if not monitored?
+
+Req! use Javascript on Java side 
+
+Will have templates 
+
+use freeboard 
+
+How many seconds before refresh? 
+
+
+Software development process 
+   assign roles?
+   
+Scrum during class 
+
+Github w/readme.md 
+Built in rpm and deb 
+
+- LOVE personal logs
+- Personal software process
+
+-- Detailed description for every commit 
+
+Time tracking software? 
+Do logs as part of commit 
+Thorough unit tests - use built in unit tests  
+
+Get good and maintainable project 
+  we graduate, he is stuck with it 
+  
+Don't keep personal logs on gitHub 
+
+Presentation at Semester's end 
+
+Git Master URL 
+
+Get working in weeks
+Demonstratable - keep deomonstratable 
+readme.md 
+RPM/ APT install to out of the box 
+Get working in markdown 
+
+Doesn't care to run as a linux daemon 
+Provide upstart scripts? Yes, must provide 
+Req: scripts - prof will be willin to write 
+
+By Tuesday - a standup in class - some show of progress 
+Status report every class
+   - what did yesterday, what doing today, what is blocking me
+   Even "there is no progress" is a status update
+   
+Prof will be good for status 
+   Gets status 
+   Scrum or burn down charts
+   
+Build framework
+  - What plugins to start? 
+  
+Hybrid of agile and coding
+Build unit tests, do unit tests first
+
+github.com/reddragonx/SuperHoneyPot
+
+Framework
+  - Calls plugins when started
+  
+Req: All must be on a Raspberry Pi 
+
+What will we do when "full"? - record elsewhere?

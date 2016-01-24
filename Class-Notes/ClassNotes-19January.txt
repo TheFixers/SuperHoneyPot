@@ -1,0 +1,31 @@
+Notes from class on 19January 2016
+Honey Pot - machine who pretends to be another machine-honey pot itself
+-data analytics and display
+monitor ports specified by plugins
+-plugins must contain all necessary information for capture
+save data 
+-at least source/destination/ip/port/data exchanged  
+telnet and http
+
+Requires:
+-Written in Python, python orm
+Redhat and debian packages
+-windows a possibility
+must run on Raspberry Pi
+-Raspberry Pi 0 - $5
+
+Data Analytics
+-dynamic display of data 
+probably rely on javscript  
+ bokeh.pydata.org/en/latest
+ github.com/freeboard/freeboard 
+used tofigure out what people do and block attacks 
+
+How good is good enough? Constant communication
+
+Honey pot - how fast the CPU goes 
+    -limited by factor otherthan network speed 
+Next year connect them together
+
+Norse Attack Map
+ -data analytics
