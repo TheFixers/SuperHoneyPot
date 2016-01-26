@@ -1,27 +1,33 @@
-import socket, threading
+#
+# Got this from:
+# http://stackoverflow.com/questions/6487772/simple-telnet-chat-server-in-python
+#
+#
+
+import threading
+import socket
 
 HOST = ''
 PORT = 23
 
-
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(4)
-clients = [] #list of clients connected
+clients = []
 lock = threading.Lock()
 
 
-class chatServer(threading.Thread):
+class Server(threading.Thread):
     def __init__(self, (socket,address)):
         threading.Thread.__init__(self)
         self.socket = socket
-        self.address= address
+        self.address = address
 
     def run(self):
         lock.acquire()
         clients.append(self)
         lock.release()
-        print '%s:%s connected.' % self.address
+        print '%s:%s connected Telnet.' % self.address
         # while True:
         #     data = self.socket.recv(1024)
         #     if not data:
@@ -29,11 +35,7 @@ class chatServer(threading.Thread):
         #     for c in clients:
         #         c.socket.send(data)
         self.socket.close()
-        print '%s:%s disconnected.' % self.address
+        print '%s:%s disconnected Telnet.' % self.address
         lock.acquire()
         clients.remove(self)
         lock.release()
-
-while True: # wait for socket to connect
-    # send socket to chatserver and start monitoring
-    chatServer(s.accept()).start()

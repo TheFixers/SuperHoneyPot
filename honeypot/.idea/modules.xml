@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/SuperHoneyPot.iml" filepath="$PROJECT_DIR$/.idea/SuperHoneyPot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/honeypot.iml" filepath="$PROJECT_DIR$/honeypot.iml" />
     </modules>
   </component>
 </project>

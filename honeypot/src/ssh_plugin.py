@@ -1,17 +1,20 @@
-__author__ = 'daemoniclegend'
+#__author__ = 'daemoniclegend'
 
-import socket, threading, time
+import time
+import socket
+import threading
 
-host = ''
-sshport = 22
+HOST = ''
+PORT = 22
 
 
-srvr = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-srvr.bind((host, sshport))
-srvr.listen(5)
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((HOST, PORT))
+s.listen(5)
 lock = threading.Lock()
 
-class ssh_plugin(threading.Thread):
+
+class Server(threading.Thread):
 
     track_data = []
 
@@ -19,6 +22,7 @@ class ssh_plugin(threading.Thread):
         threading.Thread.__init__(self)
         self.socket = socket
         self.address = address
+        self.time = time
 
     def run(self):
         print 'Connection with %s:%s' % self.address
@@ -28,7 +32,4 @@ class ssh_plugin(threading.Thread):
         self.track_data = [self.time, self.address, self.socket, sshport]
 
 
-
-while True:
-    ssh_plugin(srvr.accept()).start()
 
