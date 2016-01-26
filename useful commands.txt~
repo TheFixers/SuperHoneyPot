@@ -1,5 +1,0 @@
-netstat -ona | findstr 0.0.0.0
-
-netstat -vatn
-
-sudo -i 
