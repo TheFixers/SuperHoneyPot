@@ -10,7 +10,7 @@ PORT = 22
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
-s.listen(5)
+s.listen(4)
 lock = threading.Lock()
 
 
@@ -29,7 +29,7 @@ class Server(threading.Thread):
         self.time = time.ctime(time.time())
         self.socket.send('Login as: ')
 
-        self.track_data = [self.time, self.address, self.socket, sshport]
+        self.track_data = [self.time, self.address, self.socket, PORT]
 
 
 
