@@ -1,7 +1,3 @@
-#
-# Got this from:
-# http://stackoverflow.com/questions/6487772/simple-telnet-chat-server-in-python
-#
 import socket
 import json
 import time
