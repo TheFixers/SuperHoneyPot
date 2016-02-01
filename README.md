@@ -1,3 +1,3 @@
 # SuperHoneyPot
 
-Requirements are here: 
+Requirements are here: https://github.com/redragonx/HoneyPotExtras
