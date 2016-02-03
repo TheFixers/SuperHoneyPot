@@ -1,20 +1,19 @@
 import socket
 import json
 import time
+import threading
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep
 
+PORT_NUMBER = 80
 
-class http_server_plugin(BaseHTTPRequestHandler):
+class server_plugin(threading.Thread):
 
-    PORT_NUMBER = 80
 
-    def __init__(self, port=80):
-
-        self.PORT_NUMBER = port
-
-        self.run()
-
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.start()
 
     def run(self):
 
@@ -22,10 +21,10 @@ class http_server_plugin(BaseHTTPRequestHandler):
         #incoming request
 
         try:
-            self.server = HTTPServer(('', self.PORT_NUMBER), web_server_handler)
+            self.server = HTTPServer(('', PORT_NUMBER), web_server_handler)
             self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-            print 'Started httpserver on port ' , self.PORT_NUMBER
+            print 'Started httpserver on port ' , PORT_NUMBER
 
             #Wait forever for incoming htto requests
             self.server.serve_forever()
