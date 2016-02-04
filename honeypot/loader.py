@@ -18,7 +18,7 @@ def start_plugin(class_to_run, socket_to_run):
 for i in lines:
 	if i != '' and i[:1] != '#':		#ignore blank lines and comments starting with #
 		plugin = __import__(i)
-		if i == "http_reader" or i == "http_reader2":   # currently the only two on the new format
+		if i == "http_reader" or i == "http_reader2" or i == "ssh_plugin":   # currently the only two on the new format
 			plugin.server_plugin()
 		else:
 			thread.start_new_thread(start_plugin, (plugin.Server, plugin.s,))

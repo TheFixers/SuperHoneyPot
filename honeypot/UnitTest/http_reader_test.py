@@ -1,9 +1,9 @@
 import os
-path = os.path.dirname(os.path.realpath(__file__)).replace("UnitTest", "plugins")
-
 import sys
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("UnitTest", "plugins")
 sys.path.insert(0, path)
 
-from http_reader import http_server_plugin, web_server_handler
+import http_reader
 
-server = http_server_plugin()
+http_reader.server_plugin()
