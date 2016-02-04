@@ -11,6 +11,11 @@ sys.path.insert(0, path)
 text_file = open("plugins.txt", "r")
 lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
+# fred use this to start the main loader please
+
+def if __name__ == '__main__':
+    start_plugin() # fix this line
+
 def start_plugin(class_to_run, socket_to_run):
     while 1:
         class_to_run(socket_to_run.accept()).start()
