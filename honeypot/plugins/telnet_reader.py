@@ -28,12 +28,12 @@ class Server(threading.Thread):
         clients.append(self)
         lock.release()
         print '%s:%s connected Telnet.' % self.address
-        # while True:
-        #     data = self.socket.recv(1024)
-        #     if not data:
-        #         break
-        #     for c in clients:
-        #         c.socket.send(data)
+        while True:
+            data = self.socket.recv(1024)
+            if not data:
+                break
+            for c in clients:
+                c.socket.send(data)
         self.socket.close()
         print '%s:%s disconnected Telnet.' % self.address
         lock.acquire()
