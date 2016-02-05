@@ -8,7 +8,9 @@ import re
 path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
 sys.path.insert(0, path)
 
-text_file = open("../plugins.txt", "r")
+path = path.replace("plugins","")
+
+text_file = open(path+"plugins.txt", "r")
 lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
 
