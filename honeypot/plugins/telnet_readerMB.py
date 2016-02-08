@@ -8,7 +8,6 @@ from thread import *
  
 HOST = ''   # Symbolic name meaning all available interfaces
 PORT = 8888 # Arbitrary non-privileged port
- 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print 'Socket created'
  
@@ -27,19 +26,21 @@ print 'Socket now listening'
  
 #Function for handling connections. This will be used to create threads
 def clientthread(conn):
+    line = ''
     #Sending message to connected client
     conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
      
     #infinite loop so that function do not terminate and thread do not end.
     while True:
-         
+
         #Receiving from client
         data = conn.recv(1024)
-        reply = 'OK...' + data
+        if "\n" in data:
+            print line
+            line = ''
+        line = line + data
         if not data: 
             break
-     
-        conn.sendall(reply)
      
     #came out of loop
     conn.close()
