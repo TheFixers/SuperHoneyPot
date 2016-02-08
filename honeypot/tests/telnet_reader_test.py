@@ -1,8 +1,7 @@
 import unittest
-import sys
-from ..plugins import ssh_plugin
-sp = ssh_plugin
+from ..plugins import telnet_reader
 
+tn = telnet_reader.Server
 
 
 class GeneralServerTest(unittest.TestCase):
@@ -24,4 +23,24 @@ class GeneralServerTest(unittest.TestCase):
 
     # Makes sure the server can accept multiple request at once
     def test_multithreads(self):
+        self.assertTrue(False)
+
+
+class TelnetUnitTest(unittest.TestCase):
+    # The Port should be defaulted to 23;
+    def test_default_port(self):
+        self.assertEqual(tn.PORT, 23)
+
+    # The default host right now is blank
+    def test_default_host(self):
+        self.assertEqual(tn.HOST, '')
+
+    #
+    def test_recv_username(self):
+        self.assertTrue(False)
+
+    def test_recv_password(self):
+        self.assertTrue(False)
+
+    def test_recv_invalid_response(self):
         self.assertTrue(False)

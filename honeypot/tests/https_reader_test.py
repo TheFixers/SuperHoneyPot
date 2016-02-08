@@ -1,8 +1,9 @@
 import unittest
 import sys
-from ..plugins import ssh_plugin
-sp = ssh_plugin
+from src import https_reader
+sys.path.append("UnitTest/honeypot/src")
 
+HSR = https_reader
 
 
 class GeneralServerTest(unittest.TestCase):

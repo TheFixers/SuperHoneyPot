@@ -1,9 +1,3 @@
-import os
-import sys
+from http_reader import http_server_plugin, web_server_handler
 
-path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "plugins")
-sys.path.insert(0, path)
-
-import http_reader
-
-http_reader.server_plugin()
+server =http_server_plugin(8080)
