@@ -1,41 +1,57 @@
-#
-# Got this from:
-# http://stackoverflow.com/questions/6487772/simple-telnet-chat-server-in-python
-#
-#
-
-import threading
+'''
+    Simple socket server using threads
+'''
+ 
 import socket
-
-HOST = ''
-PORT = 23
-
+import sys
+from thread import *
+ 
+HOST = ''   # Symbolic name meaning all available interfaces
+PORT = 8888 # Arbitrary non-privileged port
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST, PORT))
-s.listen(4)
-clients = []
-lock = threading.Lock()
+print 'Socket created'
+ 
+#Bind socket to local host and port
+try:
+    s.bind((HOST, PORT))
+except socket.error as msg:
+    print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+    sys.exit()
+     
+print 'Socket bind complete'
+ 
+#Start listening on socket
+s.listen(10)
+print 'Socket now listening'
+ 
+#Function for handling connections. This will be used to create threads
+def clientthread(conn):
+    line = ''
+    #Sending message to connected client
+    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
+     
+    #infinite loop so that function do not terminate and thread do not end.
+    while True:
 
-
-class Server(threading.Thread):
-    def __init__(self, (socket,address)):
-        threading.Thread.__init__(self)
-        self.socket = socket
-        self.address = address
-
-    def run(self):
-        lock.acquire()
-        clients.append(self)
-        lock.release()
-        print '%s:%s connected Telnet.' % self.address
-        while True:
-            data = self.socket.recv(1024)
-            if not data:
-                break
-            for c in clients:
-                c.socket.send(data)
-        self.socket.close()
-        print '%s:%s disconnected Telnet.' % self.address
-        lock.acquire()
-        clients.remove(self)
-        lock.release()
+        #Receiving from client
+        data = conn.recv(1024)
+        if "\n" in data:
+            print line
+            line = ''
+        line = line + data
+        if not data: 
+            break
+     
+    #came out of loop
+    conn.close()
+ 
+#now keep talking with the client
+while 1:
+    #wait to accept a connection - blocking call
+    conn, addr = s.accept()
+    print 'Connected with ' + addr[0] + ':' + str(addr[1])
+     
+    #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+    start_new_thread(clientthread ,(conn,))
+ 
+s.close()
