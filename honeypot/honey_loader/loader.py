@@ -14,21 +14,17 @@ text_file = open(path+"plugins.txt", "r")
 lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
 
-def start_plugin(class_to_run, socket_to_run):
-    while 1:
-        class_to_run(socket_to_run.accept()).start()
-
 def start_plugins():
-	for i in lines:
-		if i != '' and i[:1] != '#':		#ignore blank lines and comments starting with #
-			plugin = __import__(i)
-			if i == "http_reader" or i == "http_reader2" or i == "ssh_plugin":   # currently the only two on the new format
+	try:
+		for i in lines:
+			if i != '' and i[:1] != '#':		#ignore blank lines and comments starting with #
+				plugin = __import__(i)
 				plugin.server_plugin()
-			else:
-				thread.start_new_thread(start_plugin, (plugin.Server, plugin.s,))
 
-	while True:
-		pass
-
+		while True:
+			pass
+	except KeyboardInterrupt:
+		print '\nexiting via KeyboardInterrupt'
+		exit()
 if __name__ == '__main__':
 	start_plugins()
