@@ -13,13 +13,13 @@ path = path.replace("plugins","")
 text_file = open(path+"plugins.txt", "r")
 lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
-
 def start_plugins():
 	try:
+		lock = threading.Lock()
 		for i in lines:
 			if i != '' and i[:1] != '#':		#ignore blank lines and comments starting with #
 				plugin = __import__(i)
-				plugin.server_plugin()
+				plugin.server_plugin(lock)
 
 		while True:
 			pass

@@ -17,7 +17,8 @@ class server_plugin(paramiko.ServerInterface):
 
     PORT = 22
 
-    def __init__(self):
+    def __init__(self, lock):
+        self.lock = lock
         self.PortNumber = 22
         self.run()
 
