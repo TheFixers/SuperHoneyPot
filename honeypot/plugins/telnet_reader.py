@@ -66,4 +66,11 @@ def clientthread(conn):
      
     #came out of loop
     conn.close()
- 
+
+
+if __name__ == '__main__':
+        lock = threading.Lock()
+        server_plugin(lock)
+        while True:
+            pass
+
