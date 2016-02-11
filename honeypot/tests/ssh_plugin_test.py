@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import unittest
 import sys
 from ..plugins import ssh_plugin
@@ -25,3 +26,21 @@ class GeneralServerTest(unittest.TestCase):
     # Makes sure the server can accept multiple request at once
     def test_multithreads(self):
         self.assertTrue(False)
+=======
+__author__ = 'daemoniclegend'
+
+import os
+import sys
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "plugins")
+sys.path.insert(0, path)
+
+from plugins import ssh_plugin
+'''
+path = os.getcwd().replace('UnitTest', '')
+sys.path.insert(0, path)
+sys.path.append('..')
+'''
+
+ssh_plugin.server_plugin()
+>>>>>>> refs/remotes/origin/master
