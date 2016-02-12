@@ -25,6 +25,5 @@ def start_plugins():
 			pass
 	except KeyboardInterrupt:
 		print '\nexiting via KeyboardInterrupt'
-		exit()
 if __name__ == '__main__':
 	start_plugins()

@@ -90,3 +90,12 @@ class web_server_handler(BaseHTTPRequestHandler):
 
        # except IOError:
        # self.send_error(404,'File Not Found: %s' % self.path)
+
+if __name__ == '__main__':
+    try:
+        lock = threading.Lock()
+        server_plugin(lock)
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print '\nexiting via KeyboardInterrupt'
