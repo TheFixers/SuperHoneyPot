@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> master
 import unittest
 import sys
 from ..plugins import ssh_plugin
@@ -25,6 +28,7 @@ class GeneralServerTest(unittest.TestCase):
 
     # Makes sure the server can accept multiple request at once
     def test_multithreads(self):
+<<<<<<< HEAD
         self.assertTrue(False)
 =======
 __author__ = 'daemoniclegend'
@@ -44,3 +48,6 @@ sys.path.append('..')
 
 ssh_plugin.server_plugin()
 >>>>>>> refs/remotes/origin/master
+=======
+        self.assertTrue(False)
+>>>>>>> master
