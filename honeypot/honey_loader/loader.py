@@ -13,6 +13,7 @@ path = path.replace("plugins","")
 text_file = open(path+"plugins.txt", "r")
 lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
+
 def start_plugins():
 	try:
 		lock = threading.Lock()
@@ -24,6 +25,15 @@ def start_plugins():
 		while True:
 			pass
 	except KeyboardInterrupt:
+		lock.acquire()
 		print '\nexiting via KeyboardInterrupt'
+		sys.exit()
+		lock.release()
+	except Exception as e:
+		lock.acquire()
+		print('ERROR: ' + str(e))
+		sys.exit()
+		lock.release()
+
 if __name__ == '__main__':
 	start_plugins()
