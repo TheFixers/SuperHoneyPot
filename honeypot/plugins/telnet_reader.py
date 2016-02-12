@@ -69,8 +69,11 @@ def clientthread(conn):
 
 
 if __name__ == '__main__':
+    try:
         lock = threading.Lock()
         server_plugin(lock)
         while True:
             pass
+    except KeyboardInterrupt:
+        print '\nexiting via KeyboardInterrupt'
 

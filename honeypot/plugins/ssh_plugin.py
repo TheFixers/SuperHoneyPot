@@ -109,3 +109,13 @@ class server_plugin(threading.Thread):
     def teardown(self):
         self.sshSocket.shutdown()
         self.sshSocket.close()
+
+
+if __name__ == '__main__':
+    try:
+        lock = threading.Lock()
+        server_plugin(lock)
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print '\nexiting via KeyboardInterrupt'
