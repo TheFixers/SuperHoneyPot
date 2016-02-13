@@ -57,11 +57,12 @@ class server_plugin(threading.Thread):
             print('Connection failure: ' + str(e))
 
         try:
+            self.lock.acquire()
             DoGSSAPIKeyExchange = True
             print('Connection attempting...')
             t = paramiko.Transport(client)
             print('1')
-
+            self.lock.release()
             try:
                 t.load_server_moduli()
             except:
@@ -70,7 +71,7 @@ class server_plugin(threading.Thread):
             print('2')
             t.add_server_key(host_key)
             print('3')
-            server = server_plugin()
+            server = server_plugin(self.lock)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
