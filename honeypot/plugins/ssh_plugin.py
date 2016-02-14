@@ -6,7 +6,7 @@ import sys
 import socket
 import threading
 import json
-import gssapi
+
 from binascii import hexlify
 
 import paramiko
@@ -21,8 +21,18 @@ host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.k
 
 isStarted = False
 
+class server_plugin(threading.Thread):
 
-class server_plugin(paramiko.ServerInterface, threading.Thread):
+    def __init__(self, lock):
+        threading.Thread.__init__(self)
+        self.lock = lock
+        self.daemon = True
+        self.start()
+        ssh = server_plugin_ssh(lock)
+        ssh.run()
+
+
+class server_plugin_ssh(paramiko.ServerInterface, threading.Thread):
     PORT = 22
     sshSocket = None
     client = None
@@ -45,7 +55,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         try:
             ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            ssh_socket.bind(('', 5555))
+            ssh_socket.bind(('', 22))
 
             return ssh_socket
         except Exception as e:
@@ -92,7 +102,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             print('2')
             t.add_server_key(host_key)
             print('3')
-            server = server_plugin(self.lock)
+            server = server_plugin_ssh(self.lock)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
@@ -190,12 +200,13 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return True
 
 
-if __name__ == '__main__':
-    try:
-        lock = threading.Lock()
-        server = server_plugin(lock)
-        server.run()
-        while True:
-            pass
-    except KeyboardInterrupt:
-        print '\nexiting via KeyboardInterrupt'
+
+
+
+
+
+
+
+
+
+
