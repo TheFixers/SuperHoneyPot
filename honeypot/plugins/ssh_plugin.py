@@ -27,9 +27,10 @@ class server_plugin(threading.Thread):
         threading.Thread.__init__(self)
         self.lock = lock
         self.daemon = True
-        self.start()
         ssh = server_plugin_ssh(lock)
         ssh.run()
+        self.start()
+
 
 
 class server_plugin_ssh(paramiko.ServerInterface, threading.Thread):
@@ -201,7 +202,14 @@ class server_plugin_ssh(paramiko.ServerInterface, threading.Thread):
 
 
 
-
+if __name__ == '__main__':
+    try:
+        lock = threading.Lock()
+        server_plugin(lock)
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print '\nexiting via KeyboardInterrupt'
 
 
 
