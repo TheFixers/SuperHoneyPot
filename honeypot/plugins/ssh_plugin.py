@@ -22,7 +22,7 @@ host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.k
 isStarted = False
 
 
-class server_plugin(threading.Thread):
+class server_plugin(paramiko.ServerInterface, threading.Thread):
     PORT = 22
     sshSocket = None
     client = None
