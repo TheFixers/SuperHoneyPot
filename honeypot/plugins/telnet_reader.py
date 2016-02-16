@@ -61,21 +61,21 @@ def clientthread(conn, addr):
 
         #Receiving from client
         data = conn.recv(1024)
-        
+
         if "\n" in data:
+            data = data.replace('\r\n','')
             if i == 0:
-                print 'Username attempted: ' + line[9:]
+                print 'Username attempted: ' + data
                 conn.send('                Password: ')
-            if i == 1:
-                print 'Password attempted: ' + line[9:]
-            if line == 'quit' or line == 'q' or line == 'QUIT' or line == 'Q':
+                i = i + 1
+            elif i == 1:
+                print 'Password attempted: ' + data
+                i = i + 1
+            elif data == 'quit' or data == 'q' or data == 'QUIT' or data == 'Q':
                 print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
-                conn.close()
                 break
-            print addr[0] + ':' + str(addr[1]) + ': ' + line
-            i = i + 1
-            line = ''
-        else: line = line + data
+            else:
+                print repr(addr[0] + ':' + str(addr[1]) + ': ' + data) # repr() 
         if not data:
             print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
