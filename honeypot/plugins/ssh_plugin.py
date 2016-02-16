@@ -92,7 +92,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             print('2')
             t.add_server_key(host_key)
             print('3')
-            server = server_plugin_ssh(self.lock)
+            server = server_plugin(self.lock)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
