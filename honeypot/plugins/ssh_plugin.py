@@ -21,19 +21,7 @@ host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.k
 
 isStarted = False
 
-class server_plugin(threading.Thread):
-
-    def __init__(self, lock):
-        threading.Thread.__init__(self)
-        self.lock = lock
-        self.daemon = True
-        ssh = server_plugin_ssh(lock)
-        ssh.run()
-        self.start()
-
-
-
-class server_plugin_ssh(paramiko.ServerInterface, threading.Thread):
+class server_plugin(paramiko.ServerInterface, threading.Thread):
     PORT = 22
     sshSocket = None
     client = None
@@ -51,6 +39,7 @@ class server_plugin_ssh(paramiko.ServerInterface, threading.Thread):
         self.lock = lock
         self.daemon = True
         self.event = threading.Event()
+        self.start()
 
     def get_ssh_socket(self):
         try:

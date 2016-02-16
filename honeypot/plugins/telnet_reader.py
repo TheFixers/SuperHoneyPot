@@ -66,7 +66,7 @@ def clientthread(conn, addr):
             data = data.replace('\r\n','')
             if i == 0:
                 print 'Username attempted: ' + data
-                conn.send('                Password: ')
+                conn.send('Password: ')
                 i = i + 1
             elif i == 1:
                 print 'Password attempted: ' + data
@@ -75,7 +75,7 @@ def clientthread(conn, addr):
                 print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
                 break
             else:
-                print repr(addr[0] + ':' + str(addr[1]) + ': ' + data) # repr() 
+                print addr[0] + ':' + str(addr[1]) + ': ' + data # repr() 
         if not data:
             print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
