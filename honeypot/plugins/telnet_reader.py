@@ -4,10 +4,11 @@
 import threading
 import socket
 import sys
+import signal
 from thread import *
  
-HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 23 # Arbitrary non-privileged port
+HOST = '' 
+PORT = 23
 
 class server_plugin(threading.Thread):
 
@@ -39,32 +40,46 @@ class server_plugin(threading.Thread):
             #wait to accept a connection - blocking call
             conn, addr = s.accept()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
-             
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            start_new_thread(clientthread ,(conn,))
+            start_new_thread(clientthread ,(conn, addr))
          
         s.close()
 
- 
 #Function for handling connections. This will be used to create threads
-def clientthread(conn):
+def clientthread(conn, addr):
     line = ''
-    #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
-     
+    i = 0
+    conn.send('\n')
+    conn.send('\n')
+    conn.send('Login authentication\n')
+    conn.send('\n')
+    conn.send('\n')
+    conn.send('Username: ')
     #infinite loop so that function do not terminate and thread do not end.
     while True:
+        
 
         #Receiving from client
         data = conn.recv(1024)
+        
         if "\n" in data:
-            print line
+            if i == 0:
+                print 'Username attempted: ' + line[9:]
+                conn.send('                Password: ')
+            if i == 1:
+                print 'Password attempted: ' + line[9:]
+            if line == 'quit' or line == 'q' or line == 'QUIT' or line == 'Q':
+                print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
+                conn.close()
+                break
+            print addr[0] + ':' + str(addr[1]) + ': ' + line
+            i = i + 1
             line = ''
-        line = line + data
-        if not data: 
+        else: line = line + data
+        if not data:
+            print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
-     
-    #came out of loop
+
     conn.close()
 
 
