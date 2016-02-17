@@ -1,5 +1,4 @@
 http_reader
-http_reader2
+https_reader
 ssh_plugin
 telnet_reader
-https_reader
