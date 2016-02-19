@@ -10,7 +10,7 @@ import json
 from binascii import hexlify
 
 import paramiko
-from paramiko.py3compat import b, u, decodebytes
+from paramiko.py3compat import b, u
 import os
 
 # setup logging
@@ -29,6 +29,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     channel = None
     pulledKey = None
     clientIP = None
+    clientUsername = ''
+    clientPassword = ''
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -100,6 +102,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 pass
         self.lock.acquire()
         self.display_output()
+        self.clear_vars()
         self.lock.release()
 
     def check_channel_request(self, kind, chanid):
@@ -109,8 +112,13 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
+        server_plugin.clientUsername = username
+        if password == '':
+            server_plugin.clientPassword += '<null> '
+        else:
+            server_plugin.clientPassword += (password + ' ')
         if (username == 'robey') and (password == 'foo'):
-            return paramiko.AUTH_SUCCESSFUL
+            return paramiko.AUTH_FAILED #(default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
@@ -167,6 +175,15 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Attacker key: ' + server_plugin.pulledKey)
         print('Attacker IP:  ' + server_plugin.clientIP)
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
+        print('Submitted username: ' + server_plugin.clientUsername)
+        print('Submitted password: ' + server_plugin.clientPassword)
+        return
+
+    def clear_vars(self):
+        server_plugin.clientIP = None
+        server_plugin.pulledKey = None
+        server_plugin.clientUsername = ''
+        server_plugin.clientPassword = ''
         return
 
 if __name__ == '__main__':
