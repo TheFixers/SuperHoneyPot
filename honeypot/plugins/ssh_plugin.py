@@ -72,6 +72,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             self.lock.acquire()
             self.lock.release()
             print('ssh connection attempting...')
+            # creates the ssh transport over the socket
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
             try:
@@ -79,14 +80,18 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
-            t.add_server_key(host_key)
+            t.add_server_key(host_key)  # sets the server RSA key
             server = server_plugin(self.lock)
             print('complete. Starting server')
             try:
+                # starts a new ssh server session and opens a thread for
+                # protocol negotiation.
                 t.start_server(server=server)
             except paramiko.SSHException:
                 print('*** SSH negotiation failed.')
-            channel = t.accept(20)
+            channel = t.accept(60)
+            # Channel will always be none because the client cannot
+            # authenticate to request a channel.
             if channel is None:
                 print('*** No channel.')
         except Exception as e:
@@ -96,6 +101,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 pass
         self.lock.acquire()
+        # Displays, then clears collected data fields.
         self.display_output()
         self.clear_vars()
         self.lock.release()
@@ -107,7 +113,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def check_auth_password(self, username, password):
         # Performs username and password authentication. Captures username
-        # and all password attempts.
+        # and all password attempts, including empty strings.
         server_plugin.clientUsername = username
         if password == '':
             server_plugin.clientPassword += '<null> '
@@ -122,8 +128,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         # if applicable, then captures the key
         server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
         print('Auth attempt with key: ' + server_plugin.pulledKey)
-        if (username == 'robey') and (key == self.good_pub_key):
-            return paramiko.AUTH_FAILED   ##(default: paramiko.AUTH-SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_with_mic(self, username,
