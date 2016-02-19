@@ -19,7 +19,6 @@ paramiko.util.log_to_file('demo_server.log')
 currentFilePath = os.path.dirname(os.path.realpath(__file__))
 host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.key')
 
-isStarted = False
 
 class server_plugin(paramiko.ServerInterface, threading.Thread):
     PORT = 22
@@ -28,11 +27,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     address = None
     server = None
     channel = None
-    data = (b'AAAAB3NzaC1yc2EAAAABIwAAAIEAyO4it3fHlmGZWJaGrfeHOVY7RWO3P9M7hp'
-            b'fAu7jJ2d7eothvfeuoRFtJwhUmZDluRdFyhFY/hFAh76PJKGAusIqIQKlkJxMC'
-            b'KDqIexkgHAfID/6mqvmnSJf0b5W8v5h2pI/stOSwTQ+pxVhwJ9ctYDhRSlF0iT'
-            b'UWT10hcuO4Ks8=')
-    good_pub_key = paramiko.RSAKey(data=decodebytes(data))
+    pulledKey = None
+    clientIP = None
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -45,7 +41,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         try:
             ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            ssh_socket.bind(('', 22))
+            ssh_socket.bind(('', server_plugin.PORT))
 
             return ssh_socket
         except Exception as e:
@@ -62,26 +58,22 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             ## accepts a connection request from the client and records the client info
             client, address = ssh_socket.accept()
             time = datetime.datetime.now().time()
-
+            server_plugin.clientIP = address[0]
             return client, address, time
 
         except Exception as e:
             print('Connection failure: ' + str(e))
-
 
     def run(self):
         self.lock.acquire()
         print('SSH LOADED')
         self.lock.release()
         ## sets up a socket and begins listening for connection requests
-
         try:
             client, address, time = self.accept()
             self.lock.acquire()
-            print('1')
             self.lock.release()
-            DoGSSAPIKeyExchange = True
-            print('Connection attempting...')
+            print('ssh connection attempting...')
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
             try:
@@ -89,28 +81,16 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
-            print('2')
             t.add_server_key(host_key)
-            print('3')
             server = server_plugin(self.lock)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
-                print('4')
             except paramiko.SSHException:
                 print('*** SSH negotiation failed.')
             channel = t.accept(20)
             if channel is None:
                 print('*** No channel.')
-                sys.exit(1)
-            print('Authenticated!')
-            channel.send('Username: ')
-            temp = channel.makefile('name')
-            client_username = temp.readline().strip('\r\n')
-            channel.send('Password: ')
-            temp = channel.makefile('pass')
-            client_password = temp.readline().strip('\r\n')
-            channel.close()
 
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
@@ -118,6 +98,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 t.close()
             except:
                 pass
+        self.lock.acquire()
+        self.display_output()
+        self.lock.release()
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -125,21 +108,17 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
-
-
-
     def check_auth_password(self, username, password):
         if (username == 'robey') and (password == 'foo'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def check_auth_publickey(self, username, key):
-        print('Auth attempt with key: ' + u(hexlify(key.get_fingerprint())))
+        server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
+        print('Auth attempt with key: ' + server_plugin.pulledKey)
         if (username == 'robey') and (key == self.good_pub_key):
-            return paramiko.AUTH_SUCCESSFUL
+            return paramiko.AUTH_FAILED   ##(default: paramiko.AUTH-SUCCESSFUL)
         return paramiko.AUTH_FAILED
-
 
     def check_auth_gssapi_with_mic(self, username,
                                    gss_authenticated=paramiko.AUTH_FAILED,
@@ -161,7 +140,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def check_auth_gssapi_keyex(self, username,
                                 gss_authenticated=paramiko.AUTH_FAILED,
                                 cc_file=None):
@@ -169,27 +147,27 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def enable_auth_gssapi(self):
         UseGSSAPI = True
         GSSAPICleanupCredentials = False
         return UseGSSAPI
 
-
     def get_allowed_auths(self, username):
         return 'gssapi-keyex,gssapi-with-mic,password,publickey'
-
 
     def check_channel_shell_request(self, channel):
         self.event.set()
         return True
 
-
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth,
                                   pixelheight, modes):
         return True
 
-
+    def display_output(self):
+        print('Attacker key: ' + server_plugin.pulledKey)
+        print('Attacker IP:  ' + server_plugin.clientIP)
+        print('Port of incoming attack: ' + server_plugin.PORT.__str__())
+        return
 
 if __name__ == '__main__':
     try:
@@ -199,11 +177,3 @@ if __name__ == '__main__':
             pass
     except KeyboardInterrupt:
         print '\nexiting via KeyboardInterrupt'
-
-
-
-
-
-
-
-
