@@ -126,8 +126,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
-        print('Auth attempt with key: ' + u(hexlify(key.get_fingerprint())))
         self.pulledKey = u(hexlify(key.get_fingerprint()))
+        print('Auth attempt with key: ' + self.pulledKey)
         if (username == 'robey') and (key == self.good_pub_key):
             return paramiko.AUTH_FAILED   ##(default: paramiko.AUTH-SUCCESSFUL)
         return paramiko.AUTH_FAILED
