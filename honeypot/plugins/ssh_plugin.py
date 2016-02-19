@@ -29,8 +29,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     channel = None
     pulledKey = None
     clientIP = None
-    clientUsername = None
-    clientPassword = None
+    clientUsername = ''
+    clientPassword = ''
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -112,7 +112,10 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def check_auth_password(self, username, password):
         server_plugin.clientUsername = username
-        server_plugin.clientPassword = password
+        if password == '':
+            server_plugin.clientPassword += '<null> '
+        else:
+            server_plugin.clientPassword += (password + ' ')
         if (username == 'robey') and (password == 'foo'):
             return paramiko.AUTH_FAILED #(default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
