@@ -29,6 +29,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     channel = None
     pulledKey = None
     clientIP = None
+    clientUsername = None
+    clientPassword = None
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -109,8 +111,10 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
+        server_plugin.clientUsername = username
+        server_plugin.clientPassword = password
         if (username == 'robey') and (password == 'foo'):
-            return paramiko.AUTH_SUCCESSFUL
+            return paramiko.AUTH_FAILED #(default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
@@ -167,6 +171,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Attacker key: ' + server_plugin.pulledKey)
         print('Attacker IP:  ' + server_plugin.clientIP)
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
+        print('Submitted username: ' + server_plugin.clientUsername)
+        print('Submitted password: ' + server_plugin.clientPassword)
         return
 
 if __name__ == '__main__':
