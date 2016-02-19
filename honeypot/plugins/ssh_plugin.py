@@ -85,7 +85,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 raise
             t.add_server_key(host_key)
             server = server_plugin(self.lock)
-            print('Captured IP is: ' + client.getpeername)
+            #print('Captured IP is: ' + self.pulledKey)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
@@ -124,9 +124,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def check_auth_publickey(self, username, key):
         print('Auth attempt with key: ' + u(hexlify(key.get_fingerprint())))
-        
+        self.pulledKey = u(hexlify(key.get_fingerprint()))
         if (username == 'robey') and (key == self.good_pub_key):
-            return paramiko.AUTH_SUCCESSFUL
+            return paramiko.AUTH_FAILED   ##(default: paramiko.AUTH-SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_with_mic(self, username,
