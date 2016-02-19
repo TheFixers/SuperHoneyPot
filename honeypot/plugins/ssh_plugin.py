@@ -30,6 +30,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     server = None
     channel = None
     pulledKey = None
+    clientIP = None
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -42,7 +43,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         try:
             ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            ssh_socket.bind(('', 22))
+            ssh_socket.bind(('', server_plugin.PORT))
 
             return ssh_socket
         except Exception as e:
@@ -59,7 +60,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             ## accepts a connection request from the client and records the client info
             client, address = ssh_socket.accept()
             time = datetime.datetime.now().time()
-
+            print(address)
+            server_plugin.clientIP = address[0]
             return client, address, time
 
         except Exception as e:
@@ -86,11 +88,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 raise
             t.add_server_key(host_key)
             server = server_plugin(self.lock)
-            #print('Captured IP is: ' + self.pulledKey)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
-                print('4')
             except paramiko.SSHException:
                 print('*** SSH negotiation failed.')
             channel = t.accept(20)
@@ -178,6 +178,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def display_output(self):
         print('Attacker key: ' + server_plugin.pulledKey)
+        print('Attacker IP:  ' + server_plugin.clientIP)
+        print('Port of incoming attack: ' + server_plugin.PORT)
         return
 
 if __name__ == '__main__':
