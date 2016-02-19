@@ -28,11 +28,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     address = None
     server = None
     channel = None
-    data = (b'AAAAB3NzaC1yc2EAAAABIwAAAIEAyO4it3fHlmGZWJaGrfeHOVY7RWO3P9M7hp'
-            b'fAu7jJ2d7eothvfeuoRFtJwhUmZDluRdFyhFY/hFAh76PJKGAusIqIQKlkJxMC'
-            b'KDqIexkgHAfID/6mqvmnSJf0b5W8v5h2pI/stOSwTQ+pxVhwJ9ctYDhRSlF0iT'
-            b'UWT10hcuO4Ks8=')
-    good_pub_key = paramiko.RSAKey(data=decodebytes(data))
+    pulledKey = None
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -74,14 +70,12 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('SSH LOADED')
         self.lock.release()
         ## sets up a socket and begins listening for connection requests
-
         try:
             client, address, time = self.accept()
             self.lock.acquire()
-            print('1')
             self.lock.release()
             DoGSSAPIKeyExchange = True
-            print('Connection attempting...')
+            print('ssh connection attempting...')
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
             try:
@@ -89,10 +83,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
-            print('2')
             t.add_server_key(host_key)
-            print('3')
             server = server_plugin(self.lock)
+            print('Captured IP is: ' + client.getpeername)
             print('complete. Starting server')
             try:
                 t.start_server(server=server)
@@ -103,15 +96,14 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             if channel is None:
                 print('*** No channel.')
                 sys.exit(1)
-            print('Authenticated!')
-            channel.send('Username: ')
-            temp = channel.makefile('name')
-            client_username = temp.readline().strip('\r\n')
-            channel.send('Password: ')
-            temp = channel.makefile('pass')
-            client_password = temp.readline().strip('\r\n')
-            channel.close()
-
+#            print('Authenticated!')
+#            channel.send('Username: ')
+#            temp = channel.makefile('name')
+#            client_username = temp.readline().strip('\r\n')
+#            channel.send('Password: ')
+#            temp = channel.makefile('pass')
+#            client_password = temp.readline().strip('\r\n')
+#            channel.close()
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
@@ -125,21 +117,17 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
-
-
-
     def check_auth_password(self, username, password):
         if (username == 'robey') and (password == 'foo'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def check_auth_publickey(self, username, key):
         print('Auth attempt with key: ' + u(hexlify(key.get_fingerprint())))
+        
         if (username == 'robey') and (key == self.good_pub_key):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
-
 
     def check_auth_gssapi_with_mic(self, username,
                                    gss_authenticated=paramiko.AUTH_FAILED,
@@ -161,7 +149,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def check_auth_gssapi_keyex(self, username,
                                 gss_authenticated=paramiko.AUTH_FAILED,
                                 cc_file=None):
@@ -169,27 +156,21 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
-
     def enable_auth_gssapi(self):
         UseGSSAPI = True
         GSSAPICleanupCredentials = False
         return UseGSSAPI
 
-
     def get_allowed_auths(self, username):
         return 'gssapi-keyex,gssapi-with-mic,password,publickey'
-
 
     def check_channel_shell_request(self, channel):
         self.event.set()
         return True
 
-
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth,
                                   pixelheight, modes):
         return True
-
-
 
 if __name__ == '__main__':
     try:
