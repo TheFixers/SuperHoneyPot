@@ -19,8 +19,6 @@ paramiko.util.log_to_file('demo_server.log')
 currentFilePath = os.path.dirname(os.path.realpath(__file__))
 host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.key')
 
-isStarted = False
-
 
 class server_plugin(paramiko.ServerInterface, threading.Thread):
     PORT = 22
@@ -75,7 +73,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             client, address, time = self.accept()
             self.lock.acquire()
             self.lock.release()
-            DoGSSAPIKeyExchange = True
             print('ssh connection attempting...')
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
@@ -94,15 +91,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             channel = t.accept(20)
             if channel is None:
                 print('*** No channel.')
-#                sys.exit(1)
-#            print('Authenticated!')
-#            channel.send('Username: ')
-#            temp = channel.makefile('name')
-#            client_username = temp.readline().strip('\r\n')
-#            channel.send('Password: ')
-#            temp = channel.makefile('pass')
-#            client_password = temp.readline().strip('\r\n')
-#            channel.close()
+
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
