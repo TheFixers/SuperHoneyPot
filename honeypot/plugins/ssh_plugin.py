@@ -95,7 +95,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             channel = t.accept(20)
             if channel is None:
                 print('*** No channel.')
-                sys.exit(1)
+#                sys.exit(1)
 #            print('Authenticated!')
 #            channel.send('Username: ')
 #            temp = channel.makefile('name')
@@ -111,7 +111,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 pass
         self.lock.acquire()
-        display_output()
+        self.display_output()
         self.lock.release()
 
     def check_channel_request(self, kind, chanid):
