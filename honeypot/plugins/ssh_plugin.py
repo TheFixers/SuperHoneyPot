@@ -21,6 +21,7 @@ host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.k
 
 isStarted = False
 
+
 class server_plugin(paramiko.ServerInterface, threading.Thread):
     PORT = 22
     sshSocket = None
@@ -126,8 +127,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
-        self.pulledKey = u(hexlify(key.get_fingerprint()))
-        print('Auth attempt with key: ' + self.pulledKey)
+        server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
+        print('Auth attempt with key: ' + server_plugin.pulledKey)
         if (username == 'robey') and (key == self.good_pub_key):
             return paramiko.AUTH_FAILED   ##(default: paramiko.AUTH-SUCCESSFUL)
         return paramiko.AUTH_FAILED
@@ -176,7 +177,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return True
 
     def display_output(self):
-        print(self.pulledKey)
+        print('Attacker key: ' + server_plugin.pulledKey)
         return
 
 if __name__ == '__main__':
