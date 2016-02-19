@@ -110,6 +110,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 t.close()
             except:
                 pass
+        self.lock.acquire()
+        display_output()
+        self.lock.release()
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -171,6 +174,11 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth,
                                   pixelheight, modes):
         return True
+
+
+def display_output(self):
+    print(self.pulledKey)
+    return
 
 if __name__ == '__main__':
     try:
