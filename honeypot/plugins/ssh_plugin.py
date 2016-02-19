@@ -175,10 +175,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                                   pixelheight, modes):
         return True
 
-
-def display_output(self):
-    print(self.pulledKey)
-    return
+    def display_output(self):
+        print(self.pulledKey)
+        return
 
 if __name__ == '__main__':
     try:
