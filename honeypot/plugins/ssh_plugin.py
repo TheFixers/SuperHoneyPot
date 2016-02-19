@@ -6,9 +6,7 @@ import sys
 import socket
 import threading
 import json
-
 from binascii import hexlify
-
 import paramiko
 from paramiko.py3compat import b, u
 import os
@@ -25,6 +23,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     sshSocket = None
     client = None
     address = None
+    time = None
     server = None
     channel = None
     pulledKey = None
@@ -44,14 +43,12 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             ssh_socket.bind(('', server_plugin.PORT))
-
             return ssh_socket
         except Exception as e:
             print('Bind failure: ' + str(e))
 
     def accept(self):
         try:
-
             ssh_socket = self.get_ssh_socket()
             ssh_socket.listen(100)
             self.lock.acquire()
@@ -59,10 +56,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             self.lock.release()
             ## accepts a connection request from the client and records the client info
             client, address = ssh_socket.accept()
-            time = datetime.datetime.now().time()
+            server_plugin.time = datetime.datetime.now().time()
             server_plugin.clientIP = address[0]
-            return client, address, time
-
+            return client, address, server_plugin.time
         except Exception as e:
             print('Connection failure: ' + str(e))
 
@@ -93,7 +89,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             channel = t.accept(20)
             if channel is None:
                 print('*** No channel.')
-
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
@@ -108,10 +103,11 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
             return paramiko.OPEN_SUCCEEDED
-
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
+        # Performs username and password authentication. Captures username
+        # and all password attempts.
         server_plugin.clientUsername = username
         if password == '':
             server_plugin.clientPassword += '<null> '
@@ -122,6 +118,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
+        # Allows the user to submit a key for authentication,
+        # if applicable, then captures the key
         server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
         print('Auth attempt with key: ' + server_plugin.pulledKey)
         if (username == 'robey') and (key == self.good_pub_key):
@@ -172,6 +170,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return True
 
     def display_output(self):
+        # Prints out all captured data from the attacker
+        print('Attack time: ' + server_plugin.time.__str__())
         print('Attacker key: ' + server_plugin.pulledKey)
         print('Attacker IP:  ' + server_plugin.clientIP)
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
@@ -180,6 +180,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return
 
     def clear_vars(self):
+        # clears out the variables in preparation for a new connection attempt
+        server_plugin.time = None
         server_plugin.clientIP = None
         server_plugin.pulledKey = None
         server_plugin.clientUsername = ''
