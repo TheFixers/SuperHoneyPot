@@ -102,6 +102,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 pass
         self.lock.acquire()
         self.display_output()
+        self.clear_vars()
         self.lock.release()
 
     def check_channel_request(self, kind, chanid):
@@ -176,6 +177,13 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
         print('Submitted username: ' + server_plugin.clientUsername)
         print('Submitted password: ' + server_plugin.clientPassword)
+        return
+
+    def clear_vars(self):
+        server_plugin.clientIP = None
+        server_plugin.pulledKey = None
+        server_plugin.clientUsername = ''
+        server_plugin.clientPassword = ''
         return
 
 if __name__ == '__main__':
