@@ -10,7 +10,7 @@ import json
 from binascii import hexlify
 
 import paramiko
-from paramiko.py3compat import b, u, decodebytes
+from paramiko.py3compat import b, u
 import os
 
 # setup logging
