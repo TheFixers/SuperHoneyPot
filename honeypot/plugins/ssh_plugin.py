@@ -60,13 +60,11 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             ## accepts a connection request from the client and records the client info
             client, address = ssh_socket.accept()
             time = datetime.datetime.now().time()
-            print(address)
             server_plugin.clientIP = address[0]
             return client, address, time
 
         except Exception as e:
             print('Connection failure: ' + str(e))
-
 
     def run(self):
         self.lock.acquire()
@@ -179,7 +177,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def display_output(self):
         print('Attacker key: ' + server_plugin.pulledKey)
         print('Attacker IP:  ' + server_plugin.clientIP)
-        print('Port of incoming attack: ' + server_plugin.PORT)
+        print('Port of incoming attack: ' + server_plugin.PORT.__str__())
         return
 
 if __name__ == '__main__':
