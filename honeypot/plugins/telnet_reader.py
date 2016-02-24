@@ -76,7 +76,7 @@ class client_thread(threading.Thread):
 
             #Receiving from client
             data = self.conn.recv(1024)
-            print repr(data)
+            # print repr(data)
             if "\r\n" in data or '\r\x00' in data:
                 datarecieved = datarecieved + data
                 datarecieved = datarecieved.replace('\r\n','')
@@ -100,10 +100,13 @@ class client_thread(threading.Thread):
                     if linux:
                         self.conn.send('>> ')
                 datarecieved = ""
-            elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data :
+            # first line on connection with linux is this giant string so just removing that nonsense
+            elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
                 if 0 == i:
                     linux = False
                 datarecieved = datarecieved + data
+
+            # these two are ctrl+c in linux and in windows. Easier way to end program. 
             if '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
                 print self.addr[0] + ':' + str(self.addr[1]) + ': ' +'Connection terminated.'
                 break
