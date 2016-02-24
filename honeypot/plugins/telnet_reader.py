@@ -42,66 +42,73 @@ class server_plugin(threading.Thread):
             conn, addr = s.accept()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            start_new_thread(clientthread ,(conn, addr))
+            client_class(self.lock, conn, addr)
          
         s.close()
 
-#Function for handling connections. This will be used to create threads
+#Class for handling connections. This will be used to create threads
+class client_class(threading.Thread):
 
-def clientthread(conn, addr):
-    global datarecieved
-    line = ''
-    i = -1
-    conn.send('\n')
-    conn.send('\n')
-    conn.send('Login authentication\n')
-    conn.send('\n')
-    conn.send('\n')
-    conn.send('Username: ')
-    #infinite loop so that function do not terminate and thread do not end.
 
-    while True:
-        
-        if i == -1:
-            datarecieved = ''
-            linux = True
-            i = 0
+    def __init__(self, lock, conn, addr):
+        threading.Thread.__init__(self)
+        self.lock = lock
+        self.conn = conn
+        self.addr = addr
+        self.daemon = True
+        self.start()
 
-        #Receiving from client
-        data = conn.recv(1024)
+    def run(self):
+        global datarecieved
+        line = ''
+        i = 0
+        self.conn.send('\n')
+        self.conn.send('\n')
+        self.conn.send('Login authentication\n')
+        self.conn.send('\n')
+        self.conn.send('\n')
+        self.conn.send('Username: ')
+        #infinite loop so that function do not terminate and thread do not end.
+        datarecieved = ''
+        linux = True
 
-        if '\r\n' in data:
-            datarecieved = datarecieved + data
+        while True:
 
-        if "\r\n" in datarecieved:
-            datarecieved = datarecieved.replace('\r\n','')
-            # print repr(datarecieved)
-            if i == 0:
-                print 'Username attempted: ' + datarecieved
-                conn.send('password: ')
-                i = i + 1
-            elif i == 1:
-                print 'Password attempted: ' + datarecieved
-                if linux:
-                    conn.send('>> ')
-                i = i + 1
-            elif datarecieved == 'quit' or datarecieved == 'q' or datarecieved == 'QUIT' or datarecieved == 'Q' or datarecieved == 'exit':
-                print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
+            #Receiving from client
+            data = self.conn.recv(1024)
+            print repr(data)
+            if "\r\n" in data or '\r\x00' in data:
+                datarecieved = datarecieved + data
+                datarecieved = datarecieved.replace('\r\n','')
+                datarecieved = datarecieved.replace('\r\x00','')
+                # print repr(datarecieved)
+                if i == 0:
+                    print 'Username attempted: ' + datarecieved
+                    self.conn.send('password: ')
+                    i = i + 1
+                elif i == 1:
+                    print 'Password attempted: ' + datarecieved
+                    if linux:
+                        self.conn.send('>> ')
+                    i = i + 1
+                else:
+                    print self.addr[0] + ':' + str(self.addr[1]) + ': ' + datarecieved # repr() 
+                    if '\r\x00' in data:
+                        self.conn.send('\n?Invalid command\n')
+                    else:
+                        self.conn.send('?Invalid command\n')
+                    if linux:
+                        self.conn.send('>> ')
                 datarecieved = ""
+            elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data :
+                if 0 == i:
+                    linux = False
+                datarecieved = datarecieved + data
+            if '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+                print self.addr[0] + ':' + str(self.addr[1]) + ': ' +'Connection terminated.'
                 break
-            else:
-                print addr[0] + ':' + str(addr[1]) + ': ' + datarecieved # repr() 
-                if linux:
-                    conn.send('>> ')
-            datarecieved = ""
-        elif len(data) == 1:
-            linux = False
-            datarecieved = datarecieved + data
-        if not data:
-            print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
-            break
 
-    conn.close()
+        self.conn.close()
 
 
 if __name__ == '__main__':
