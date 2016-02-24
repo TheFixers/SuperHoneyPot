@@ -47,6 +47,7 @@ class server_plugin(threading.Thread):
         s.close()
 
 #Function for handling connections. This will be used to create threads
+
 def clientthread(conn, addr):
     global datarecieved
     line = ''
@@ -86,6 +87,7 @@ def clientthread(conn, addr):
                 i = i + 1
             elif datarecieved == 'quit' or datarecieved == 'q' or datarecieved == 'QUIT' or datarecieved == 'Q' or datarecieved == 'exit':
                 print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
+                datarecieved = ""
                 break
             else:
                 print addr[0] + ':' + str(addr[1]) + ': ' + datarecieved # repr() 
