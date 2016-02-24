@@ -24,6 +24,7 @@ class server_plugin(threading.Thread):
 
         #Bind socket to local host and port
         try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, PORT))
         except socket.error as msg:
             print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
@@ -47,8 +48,9 @@ class server_plugin(threading.Thread):
 
 #Function for handling connections. This will be used to create threads
 def clientthread(conn, addr):
+    global datarecieved
     line = ''
-    i = 0
+    i = -1
     conn.send('\n')
     conn.send('\n')
     conn.send('Login authentication\n')
@@ -56,26 +58,43 @@ def clientthread(conn, addr):
     conn.send('\n')
     conn.send('Username: ')
     #infinite loop so that function do not terminate and thread do not end.
+
     while True:
         
+        if i == -1:
+            datarecieved = ""
+            linux = True
+            i = 0
 
         #Receiving from client
         data = conn.recv(1024)
 
-        if "\n" in data:
-            data = data.replace('\r\n','')
+        if '\r\n' in data:
+            datarecieved = datarecieved + data
+
+        if "\n" in datarecieved:
+            datarecieved = datarecieved.replace('\r\n','')
+            # print repr(datarecieved)
             if i == 0:
-                print 'Username attempted: ' + data
-                conn.send('Password: ')
+                print 'Username attempted: ' + datarecieved
+                conn.send('password: ')
                 i = i + 1
             elif i == 1:
-                print 'Password attempted: ' + data
+                print 'Password attempted: ' + datarecieved
+                if linux:
+                    conn.send('>> ')
                 i = i + 1
-            elif data == 'quit' or data == 'q' or data == 'QUIT' or data == 'Q':
+            elif datarecieved == 'quit' or datarecieved == 'q' or datarecieved == 'QUIT' or datarecieved == 'Q':
                 print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
                 break
             else:
-                print addr[0] + ':' + str(addr[1]) + ': ' + data # repr() 
+                print addr[0] + ':' + str(addr[1]) + ': ' + datarecieved # repr() 
+                if linux:
+                    conn.send('>> ')
+            datarecieved = ""
+        else:
+            linux = False
+            datarecieved = datarecieved + data
         if not data:
             print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
@@ -91,4 +110,5 @@ if __name__ == '__main__':
             pass
     except KeyboardInterrupt:
         print '\nexiting via KeyboardInterrupt'
+        sys.exit()
 
