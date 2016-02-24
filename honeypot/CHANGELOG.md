@@ -1,11 +1,14 @@
-
 # Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
-- More unmerged Telnet plugin fixes by Fred.
+
+## [0.3.2] - 2016-24-02
+### Added
+- Added AGPL license file.
+- Merged Telnet plugin changes made by Fred
 
 ## [0.3.1] - 2016-24-02
 ### Added
