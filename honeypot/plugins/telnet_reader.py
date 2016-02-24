@@ -42,12 +42,12 @@ class server_plugin(threading.Thread):
             conn, addr = s.accept()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_class(self.lock, conn, addr)
+            client_thread(self.lock, conn, addr)
          
         s.close()
 
 #Class for handling connections. This will be used to create threads
-class client_class(threading.Thread):
+class client_thread(threading.Thread):
 
 
     def __init__(self, lock, conn, addr):
