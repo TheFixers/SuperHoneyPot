@@ -63,7 +63,6 @@ def clientthread(conn, addr):
         
         if i == -1:
             datarecieved = ''
-            print 'here'
             linux = True
             i = 0
 
@@ -96,7 +95,6 @@ def clientthread(conn, addr):
         elif len(data) == 1:
             linux = False
             datarecieved = datarecieved + data
-            print 'here again'
         if not data:
             print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
