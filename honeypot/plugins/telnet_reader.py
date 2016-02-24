@@ -62,7 +62,8 @@ def clientthread(conn, addr):
     while True:
         
         if i == -1:
-            datarecieved = ""
+            datarecieved = ''
+            print 'here'
             linux = True
             i = 0
 
@@ -72,7 +73,7 @@ def clientthread(conn, addr):
         if '\r\n' in data:
             datarecieved = datarecieved + data
 
-        if "\n" in datarecieved:
+        if "\r\n" in datarecieved:
             datarecieved = datarecieved.replace('\r\n','')
             # print repr(datarecieved)
             if i == 0:
@@ -84,7 +85,7 @@ def clientthread(conn, addr):
                 if linux:
                     conn.send('>> ')
                 i = i + 1
-            elif datarecieved == 'quit' or datarecieved == 'q' or datarecieved == 'QUIT' or datarecieved == 'Q':
+            elif datarecieved == 'quit' or datarecieved == 'q' or datarecieved == 'QUIT' or datarecieved == 'Q' or datarecieved == 'exit':
                 print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
                 break
             else:
@@ -92,9 +93,10 @@ def clientthread(conn, addr):
                 if linux:
                     conn.send('>> ')
             datarecieved = ""
-        else:
+        elif len(data) == 1:
             linux = False
             datarecieved = datarecieved + data
+            print 'here again'
         if not data:
             print addr[0] + ':' + str(addr[1]) + ': ' +'Connection terminated.'
             break
