@@ -3,10 +3,10 @@ import os
 import re
 import sys
 import unittest
+import socket
 
 path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "honey_loader")
 sys.path.insert(0, path)
-path = path.replace("honey_loader","")
 import loader
 
 '''
@@ -19,20 +19,23 @@ import loader
    Testcase4: test_start_plugins_blankfile: Blank file for input.
    Testcase5:
 '''
-path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
+path = path.replace("honey_loader", "plugins")
 sys.path.insert(0, path)
-path = path.replace("plugins","")
+
+path = path.replace("plugins","tests")
+
+dummy_plugins_path = path + os.path.sep + 'dummy_plugins.txt'
+
 
 class TestLoader(unittest.TestCase):
-
     # First test is to see if good inputs will run and not throw any errors.
     # expect no Exception to pass
     def test_start_plugins(self):
-        dummy_file = open("dummy_plugins.txt", "w")
-        dummy_file.write("http_reader\nhttp_reader2\ntelnet_reader\nhttps_reader\nssh_plugin\n")
+        dummy_file = open(dummy_plugins_path, "w")
+        dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nssh_plugin\n")
         dummy_file.close()
         try:
-            text_file = open("dummy_plugins.txt", "r")
+            text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
             loader.start_plugins
@@ -101,9 +104,9 @@ class TestLoader(unittest.TestCase):
     # IOError is execpt to be thrown if plugin in file name is changed or is missing.
     # except IOError to pass
     def test_start_plugins_IOError(self):
-        os.remove("dummy_plugins.txt")
+        os.remove(dummy_plugins_path)
         try:
-            text_file = open("dummy_plugins.txt", "r")
+            text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
             loader.start_plugins
@@ -115,49 +118,63 @@ class TestLoader(unittest.TestCase):
     # If bad data is in the file except that all plugins will still run or any plugin that is started to be
     # shutdown.
     def test_start_plugins_baddatainfile(self):
-        dummy_file = open("dummy_plugins.txt", "w")
-        dummy_file.write("http_reader\nhttp_reader2\ntelnet_reader\nhttps_reader\nbad\nssh_plugin\n")
+        dummy_file = open(dummy_plugins_path, "w")
+        dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nbad\nssh_plugin\n")
         dummy_file.close()
+
+        start_plugins_exited = False
         try:
-            text_file = open("dummy_plugins.txt", "r")
+            text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
+            
+            with self.assertRaises(SystemExit) as cm:
+                loader.start_plugins()
+                start_plugins_exited = True # wont reach this line if SystemExit error happened
 
-            loader.start_plugins
+                '''
+                    daemon threads like the ones we use exit when the main thread exits
 
+                    this self assert checks if the main thread was exited at the loader
+                    else it will check if plugin is running.
+                '''
+    
             #self.fail("runs an invalid plugin")
         except AssertionError as e:
             pass
         finally:
-            try:
-                conn = httplib.HTTPSConnection("localhost", 80)
+            if start_plugins_exited:
                 plugins = True
-            except Exception as e:
-                plugins = False
-            finally:
-                conn.close()
+                try:
+                    conn = httplib.HTTPConnection('localhost', 80)
+                except Exception as e:
+                    plugins = False
+                finally:
+                    conn.close()
 
-        if(plugins):
-            self.fail("some of the plugins are running while the loader")
-        else:
-            self.assertTrue(True)
+                if(plugins):
+                    self.fail("some of the plugins are running while the loader")
+                else:
+                    self.assertTrue(True)
 
     # This test if a blank file is used for inputs
     # Might choose to use warning on empty file
     def test_start_plugins_blankfile(self):
-        dummy_file = open("dummy_plugins.txt", "w")
+        dummy_file = open(dummy_plugins_path, "w")
         # dummy_file.seek(99999) Optional test is to create a larger file with no data
         # dummy_file.write("\0")
         dummy_file.close()
         try:
-            text_file = open("dummy_plugins.txt", "r")
+            text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
             loader.start_plugins
 
         except Exception as e:
             self.fail("Error has accorded: " + e)
+        finally:
+            os.remove(dummy_plugins_path)       # added to remove dummy_plugins.txt at the end of all tests
+
 
 
 if __name__ == '__main__':
     unittest.main()
-    os.remove("dummy_plugins.txt")

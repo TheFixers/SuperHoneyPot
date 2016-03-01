@@ -1,13 +1,31 @@
+"""
+    This file is part of SuperHoneyPot.
+
+    SuperHoneyPot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SuperHoneyPot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 '''
     Simple socket server using threads
 '''
 import threading
 import socket
 import sys
+import signal
 from thread import *
  
-HOST = ''   # Symbolic name meaning all available interfaces
-PORT = 23 # Arbitrary non-privileged port
+HOST = '' 
+PORT = 23
 
 class server_plugin(threading.Thread):
 
@@ -23,6 +41,7 @@ class server_plugin(threading.Thread):
 
         #Bind socket to local host and port
         try:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((HOST, PORT))
         except socket.error as msg:
             print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
@@ -39,33 +58,77 @@ class server_plugin(threading.Thread):
             #wait to accept a connection - blocking call
             conn, addr = s.accept()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
-             
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            start_new_thread(clientthread ,(conn,))
+            client_thread(self.lock, conn, addr)
          
         s.close()
 
- 
-#Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    line = ''
-    #Sending message to connected client
-    conn.send('Welcome to the server. Type something and hit enter\n') #send only takes string
-     
-    #infinite loop so that function do not terminate and thread do not end.
-    while True:
+#Class for handling connections. This will be used to create threads
+class client_thread(threading.Thread):
 
-        #Receiving from client
-        data = conn.recv(1024)
-        if "\n" in data:
-            print line
-            line = ''
-        line = line + data
-        if not data: 
-            break
-     
-    #came out of loop
-    conn.close()
+
+    def __init__(self, lock, conn, addr):
+        threading.Thread.__init__(self)
+        self.lock = lock
+        self.conn = conn
+        self.addr = addr
+        self.daemon = True
+        self.start()
+
+    def run(self):
+        global datarecieved
+        line = ''
+        i = 0
+        self.conn.send('\n')
+        self.conn.send('\n')
+        self.conn.send('Login authentication\n')
+        self.conn.send('\n')
+        self.conn.send('\n')
+        self.conn.send('Username: ')
+        #infinite loop so that function do not terminate and thread do not end.
+        datarecieved = ''
+        linux = True
+
+        while True:
+
+            #Receiving from client
+            data = self.conn.recv(1024)
+            # print repr(data)
+            if "\r\n" in data or '\r\x00' in data:
+                datarecieved = datarecieved + data
+                datarecieved = datarecieved.replace('\r\n','')
+                datarecieved = datarecieved.replace('\r\x00','')
+                # print repr(datarecieved)
+                if i == 0:
+                    print 'Username attempted: ' + datarecieved
+                    self.conn.send('password: ')
+                    i = i + 1
+                elif i == 1:
+                    print 'Password attempted: ' + datarecieved
+                    if linux:
+                        self.conn.send('>> ')
+                    i = i + 1
+                else:
+                    print self.addr[0] + ':' + str(self.addr[1]) + ': ' + datarecieved # repr() 
+                    if '\r\x00' in data:
+                        self.conn.send('\n?Invalid command\n')
+                    else:
+                        self.conn.send('?Invalid command\n')
+                    if linux:
+                        self.conn.send('>> ')
+                datarecieved = ""
+            # first line on connection with linux is this giant string so just removing that nonsense
+            elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
+                if 0 == i:
+                    linux = False
+                datarecieved = datarecieved + data
+
+            # these two are ctrl+c in linux and in windows. Easier way to end program. 
+            if '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+                print self.addr[0] + ':' + str(self.addr[1]) + ': ' +'Connection terminated.'
+                break
+
+        self.conn.close()
 
 
 if __name__ == '__main__':
@@ -76,4 +139,5 @@ if __name__ == '__main__':
             pass
     except KeyboardInterrupt:
         print '\nexiting via KeyboardInterrupt'
+        sys.exit()
 
