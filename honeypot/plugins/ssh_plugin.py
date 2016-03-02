@@ -118,8 +118,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 pass
         self.lock.acquire()
-        # Displays, then clears collected data fields.
+        # Displays, sends, then clears collected data fields.
         self.display_output()
+        self.send_output()
         self.clear_vars()
         self.lock.release()
 
@@ -198,6 +199,16 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
         print('Submitted username: ' + server_plugin.clientUsername)
         print('Submitted password: ' + server_plugin.clientPassword)
+        return
+
+    def send_output(self):
+        # creates an output string to be sent to the database (via interface)
+        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),
+                                            'Data':{'Time':server_plugin.time.__str__(),
+                                                    'Username':server_plugin.clientUsername,
+                                                    'Passwords':server_plugin.clientPassword,
+                                                    'Key':server_plugin.pulledKey}}})
+        print(dump_string)
         return
 
     def clear_vars(self):
