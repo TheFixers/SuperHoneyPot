@@ -23,7 +23,10 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
-
+class mulithread_client(threading.Thread):
+    def run(self):
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        conn.connect(("localhost", 23))
 
 class GeneralTelnetReaderTest(unittest.TestCase):
 
@@ -113,7 +116,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
              self.fail("Client failed to make a connection")
 
          try:
-             telnet.shutdown()
+             telnet.tear_down()
              conn.connect(("localhost",23))
          except Exception as e:
              self.assertTrue(True)
@@ -154,18 +157,14 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.fail("Server Failed to Start")
 
         try:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
+            threads = []
+            for num in range(0, 4):
+                thread = mulithread_client()
+                thread.start()
+                threads.append(thread)
+
+            for thread in threads:
+                thread.join()
             connection = True
         except Exception as e:
             print e
