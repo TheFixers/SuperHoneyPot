@@ -27,6 +27,7 @@ from binascii import hexlify
 import paramiko
 from paramiko.py3compat import b, u
 import os
+import honeypot.db_interface.honeypot_db_interface
 
 # setup logging
 paramiko.util.log_to_file('demo_server.log')
@@ -209,6 +210,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                                                     'Passwords':server_plugin.clientPassword,
                                                     'Key':server_plugin.pulledKey}}})
         print(dump_string)
+        
         return
 
     def clear_vars(self):
