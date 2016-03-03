@@ -34,21 +34,22 @@ class server_plugin(threading.Thread):
         threading.Thread.__init__(self)
         self.lock = lock
         self.daemon = True
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.start()
 
     def run(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         #Bind socket to local host and port
         try:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((HOST, PORT))
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.s.bind((HOST, PORT))
         except socket.error as msg:
             print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
             sys.exit()
 
+        
         #Start listening on socket
-        s.listen(4)
+        self.s.listen(4)
         self.lock.acquire()
         print 'Started telnet server on port ', PORT
         self.lock.release()
@@ -56,12 +57,20 @@ class server_plugin(threading.Thread):
         #now keep talking with the client
         while 1:
             #wait to accept a connection - blocking call
-            conn, addr = s.accept()
+            conn, addr = self.s.accept()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
             client_thread(self.lock, conn, addr)
-         
-        s.close()
+
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt, IOError:
+                self.tear_down()
+
+    def tear_down(self):
+        print 'closing'        
+        self.s.close()
 
 #Class for handling connections. This will be used to create threads
 class client_thread(threading.Thread):
