@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 
+## [0.3.3] - 2016-24-02
+### Added
+- Added interface for plugins to send data to database.
+- Modified ssh and http plugins to use interface.
+
 ## [0.3.2] - 2016-24-02
 ### Added
 - Added AGPL license file.
