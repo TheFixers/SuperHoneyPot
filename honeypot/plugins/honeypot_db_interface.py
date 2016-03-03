@@ -39,6 +39,6 @@ class honeypot_database_interface():
         # receives data from the plugins
         current_data = json.loads(json_dump_in)
         # data may need to be formatted here, prior to sending to database below
-        result = honeypot_database_interface.database.HoneyPot.insert_one(current_data)
+        result = honeypot_database_interface.database.clientInfo.insert_one(current_data)
         result.inserted_id
         return
