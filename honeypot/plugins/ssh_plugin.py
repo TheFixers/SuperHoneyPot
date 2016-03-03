@@ -48,6 +48,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     clientIP = None
     clientUsername = ''
     clientPassword = ''
+    interface = honeypot.db_interface.honeypot_db_interface.honeypot_database_interface()
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -210,7 +211,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                                                     'Passwords':server_plugin.clientPassword,
                                                     'Key':server_plugin.pulledKey}}})
         print(dump_string)
-        
+        server_plugin.interface.receive_data(dump_string)
         return
 
     def clear_vars(self):
