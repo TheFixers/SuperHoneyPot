@@ -27,7 +27,7 @@ from binascii import hexlify
 import paramiko
 from paramiko.py3compat import b, u
 import os
-import honeypot.db_interface.honeypot_db_interface
+import honeypot_db_interface
 
 # setup logging
 paramiko.util.log_to_file('demo_server.log')
@@ -48,7 +48,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     clientIP = None
     clientUsername = ''
     clientPassword = ''
-    interface = honeypot.db_interface.honeypot_db_interface.honeypot_database_interface()
+    interface = honeypot_db_interface.honeypot_database_interface()
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
