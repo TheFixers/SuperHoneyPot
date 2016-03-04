@@ -27,6 +27,11 @@ from binascii import hexlify
 import paramiko
 from paramiko.py3compat import b, u
 import os
+
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
 import honeypot_db_interface
 
 # setup logging

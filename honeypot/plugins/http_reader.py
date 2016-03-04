@@ -22,6 +22,13 @@ import threading
 import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from os import curdir, sep
+import os
+import sys
+
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
 import honeypot_db_interface
 
 PORT_NUMBER = 80
