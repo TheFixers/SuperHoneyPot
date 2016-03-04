@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 
+## [0.3.4] - 2016-04-03
+### Added
+- Fixed loader for CPU utilization issue.
+- Adjusted server outputs on ssh.
+
 ## [0.3.3] - 2016-03-03
 ### Added
 - Added interface for plugins to send data to database.
