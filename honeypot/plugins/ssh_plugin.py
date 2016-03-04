@@ -83,14 +83,14 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def run(self):
         self.lock.acquire()
-        print('SSH LOADED')
+        #print('SSH LOADED')
         self.lock.release()
         ## sets up a socket and begins listening for connection requests
         try:
             client, address, time = self.accept()
             self.lock.acquire()
             self.lock.release()
-            print('ssh connection attempting...')
+            #print('ssh connection attempting...')
             # creates the ssh transport over the socket
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
@@ -101,7 +101,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 raise
             t.add_server_key(host_key)  # sets the server RSA key
             server = server_plugin(self.lock)
-            print('complete. Starting server')
+            #print('complete. Starting server')
             try:
                 # starts a new ssh server session and opens a thread for
                 # protocol negotiation.
@@ -112,7 +112,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             # Channel will always be none because the client cannot
             # authenticate to request a channel.
             if channel is None:
-                print('*** No channel.')
+                #print('*** No channel.')
+                return
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
