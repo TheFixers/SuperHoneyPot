@@ -147,7 +147,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         # Allows the user to submit a key for authentication,
         # if applicable, then captures the key
         server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
-        print('Auth attempt with key: ' + server_plugin.pulledKey)
+        #print('Auth attempt with key: ' + server_plugin.pulledKey)
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_with_mic(self, username,
@@ -194,6 +194,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return True
 
     def display_output(self):
+        # Server-side display string
+        print('Attack: ' + server_plugin.time.__str__() + ' on port ' + server_plugin.PORT.__str__() + '.')
+        '''
         # Prints out all captured data from the attacker
         print('Attack time: ' + server_plugin.time.__str__())
         print('Attacker key: ' + server_plugin.pulledKey)
@@ -201,6 +204,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
         print('Submitted username: ' + server_plugin.clientUsername)
         print('Submitted password: ' + server_plugin.clientPassword)
+        '''
         return
 
     def send_output(self):
@@ -210,7 +214,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                                                     'Username':server_plugin.clientUsername,
                                                     'Passwords':server_plugin.clientPassword,
                                                     'Key':server_plugin.pulledKey}}})
-        print(dump_string)
+        #print(dump_string)
         server_plugin.interface.receive_data(dump_string)
         return
 
