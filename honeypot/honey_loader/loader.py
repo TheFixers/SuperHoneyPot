@@ -17,7 +17,7 @@
 
 import os
 import threading
-import thread
+import time
 import sys
 import re
 
@@ -43,7 +43,7 @@ def start_plugins():
                 plugin.server_plugin(lock)
 
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         lock.acquire()
         print '\nexiting via KeyboardInterrupt'
