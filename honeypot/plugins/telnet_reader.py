@@ -36,6 +36,7 @@ import honeypot_db_interface
  
 HOST = '' 
 PORT = 23
+ERROR = 'error from Telnet plugin: '
 
 class server_plugin(threading.Thread):
 
@@ -53,7 +54,9 @@ class server_plugin(threading.Thread):
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.s.bind((HOST, PORT))
         except socket.error as msg:
-            print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+            self.lock.acquire()
+            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            self.lock.release()
             sys.exit()
 
         
@@ -67,7 +70,9 @@ class server_plugin(threading.Thread):
         while 1:
             #wait to accept a connection - blocking call
             conn, addr = self.s.accept()  
+            self.lock.acquire()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
+            self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
             client_thread(self.lock, conn, addr)
 
@@ -78,7 +83,9 @@ class server_plugin(threading.Thread):
                 self.tear_down()
 
     def tear_down(self):
-        print 'closing'        
+        self.lock.acquire()
+        print 'telnet closing'   
+        self.lock.release()     
         self.s.close()
 
 #Class for handling connections. This will be used to create threads
@@ -133,7 +140,10 @@ class client_thread(threading.Thread):
                         self.conn.send('>> ')
                     i = i + 1
                 else:
-                    self.data = self.data +" \n "+ datarecieved
+                    if self.data == '':
+                        self.data = datarecieved
+                    else:
+                        self.data = self.data +" || "+ datarecieved
                     if '\r\x00' in data:
                         self.conn.send('\nInvalid command\n')
                     else:
@@ -150,11 +160,14 @@ class client_thread(threading.Thread):
 
             # these two are ctrl+c in linux and in windows. Easier way to end program. 
             if i == 7 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+                self.lock.acquire()
                 print self.ip + ':' + str(self.socket) + ': ' +'Connection terminated.'
+                self.lock.release()
                 break
 
             if len(self.data) > 128 :
-                print len(self.data)
+                self.data = self.data[0:127]
+                break
 
         self.conn.close()
         self.send_output()
@@ -166,8 +179,10 @@ class client_thread(threading.Thread):
                                                     'Username':self.username,
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
+        self.lock.acquire()
         print(dump_string)
         # server_plugin.interface.receive_data(dump_string)
+        self.lock.release()
         return
 
 
