@@ -113,7 +113,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             # authenticate to request a channel.
             if channel is None:
                 #print('*** No channel.')
-                return
+                pass
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
