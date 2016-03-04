@@ -22,11 +22,22 @@ import threading
 import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from os import curdir, sep
+import os
+import sys
+
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
+import honeypot_db_interface
 
 PORT_NUMBER = 80
 
 
 class server_plugin(threading.Thread):
+
+    interface = honeypot_db_interface.honeypot_database_interface()
+
     def __init__(self, lock):
         threading.Thread.__init__(self)
         self.lock = lock
@@ -68,7 +79,9 @@ class web_server_handler(BaseHTTPRequestHandler):
                      'dateRequestedTime': request_time}
 
         # export to db or something here
-        print(json.dumps(json_data))
+        data = json.dumps(json_data)
+        print(data)
+        server_plugin.interface.receive_data(data)
 
 
         # try:

@@ -18,37 +18,50 @@
 '''
     Simple socket server using threads
 '''
+import datetime
+import time
 import threading
 import socket
 import sys
 import signal
-from thread import *
+import json
+import os
+
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
+import honeypot_db_interface
+
  
 HOST = '' 
 PORT = 23
+ERROR = 'error from Telnet plugin: '
 
 class server_plugin(threading.Thread):
-
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
         self.lock = lock
         self.daemon = True
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.start()
 
     def run(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         #Bind socket to local host and port
         try:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind((HOST, PORT))
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.s.bind((HOST, PORT))
         except socket.error as msg:
-            print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+            self.lock.acquire()
+            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            self.lock.release()
             sys.exit()
 
+        
         #Start listening on socket
-        s.listen(4)
+        self.s.listen(4)
         self.lock.acquire()
         print 'Started telnet server on port ', PORT
         self.lock.release()
@@ -56,22 +69,40 @@ class server_plugin(threading.Thread):
         #now keep talking with the client
         while 1:
             #wait to accept a connection - blocking call
-            conn, addr = s.accept()
+            conn, addr = self.s.accept()  
+            self.lock.acquire()
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
+            self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
             client_thread(self.lock, conn, addr)
-         
-        s.close()
+
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt, IOError:
+                self.tear_down()
+
+    def tear_down(self):
+        self.lock.acquire()
+        print 'telnet closing'   
+        self.lock.release()     
+        self.s.close()
 
 #Class for handling connections. This will be used to create threads
 class client_thread(threading.Thread):
 
+    interface = honeypot_db_interface.honeypot_database_interface()
 
     def __init__(self, lock, conn, addr):
         threading.Thread.__init__(self)
         self.lock = lock
         self.conn = conn
-        self.addr = addr
+        self.ip = addr[0]    # explination of (ip, port) in addr 
+        self.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
+        self.username = ''
+        self.password = ''
+        self.time  = datetime.datetime.now().time()
+        self.data = ''
         self.daemon = True
         self.start()
 
@@ -100,22 +131,26 @@ class client_thread(threading.Thread):
                 datarecieved = datarecieved.replace('\r\x00','')
                 # print repr(datarecieved)
                 if i == 0:
-                    print 'Username attempted: ' + datarecieved
+                    self.username = datarecieved
                     self.conn.send('password: ')
                     i = i + 1
                 elif i == 1:
-                    print 'Password attempted: ' + datarecieved
+                    self.password = datarecieved
                     if linux:
                         self.conn.send('>> ')
                     i = i + 1
                 else:
-                    print self.addr[0] + ':' + str(self.addr[1]) + ': ' + datarecieved # repr() 
-                    if '\r\x00' in data:
-                        self.conn.send('\n?Invalid command\n')
+                    if self.data == '':
+                        self.data = datarecieved
                     else:
-                        self.conn.send('?Invalid command\n')
+                        self.data = self.data +" || "+ datarecieved
+                    if '\r\x00' in data:
+                        self.conn.send('\nInvalid command\n')
+                    else:
+                        self.conn.send('Invalid command\n')
                     if linux:
                         self.conn.send('>> ')
+                    i = i+1
                 datarecieved = ""
             # first line on connection with linux is this giant string so just removing that nonsense
             elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
@@ -124,11 +159,31 @@ class client_thread(threading.Thread):
                 datarecieved = datarecieved + data
 
             # these two are ctrl+c in linux and in windows. Easier way to end program. 
-            if '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
-                print self.addr[0] + ':' + str(self.addr[1]) + ': ' +'Connection terminated.'
+            if i == 7 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+                self.lock.acquire()
+                print self.ip + ':' + str(self.socket) + ': ' +'Connection terminated.'
+                self.lock.release()
+                break
+
+            if len(self.data) > 128 :
+                self.data = self.data[0:127]
                 break
 
         self.conn.close()
+        self.send_output()
+
+    def send_output(self):
+        # creates an output string to be sent to the database (via interface)
+        dump_string = json.dumps({'ClientInfo':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
+                                            'Data':{'Time':self.time.__str__(),
+                                                    'Username':self.username,
+                                                    'Passwords':self.password,
+                                                    'Data':self.data}}})
+        self.lock.acquire()
+        print(dump_string)
+        # server_plugin.interface.receive_data(dump_string)
+        self.lock.release()
+        return
 
 
 if __name__ == '__main__':
@@ -136,8 +191,9 @@ if __name__ == '__main__':
         lock = threading.Lock()
         server_plugin(lock)
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         print '\nexiting via KeyboardInterrupt'
         sys.exit()
+
 

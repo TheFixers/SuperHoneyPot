@@ -19,14 +19,14 @@
 
 
 from pymongo import MongoClient
-import json
+import json, bson
 
 
 class honeypot_database_interface():
 
     # this will contain the information needed to connect to the remote database
-    db_host = 'superhoneypot:password@<cloudhost>:<cloudhost_port>/honeypot'
-    database = None
+    db_host = MongoClient("mongodb://HoneyPot:TeddyBearFood123@54.200.61.193:27017/HoneyPot")
+    database = db_host.HoneyPot
 
     def __init__(self):
         pass
@@ -35,9 +35,10 @@ class honeypot_database_interface():
         honeypot_database_interface.database = MongoClient(honeypot_database_interface.db_host)
         return
 
-    def receive_data(json_dump_in):
+    def receive_data(self, json_dump_in):
         # receives data from the plugins
-        current_data = json_dump_in
+        current_data = json.loads(json_dump_in)
         # data may need to be formatted here, prior to sending to database below
-        honeypot_database_interface.database.insert_one(current_data)
+        result = honeypot_database_interface.database.clientInfo.insert_one(current_data)
+        result.inserted_id
         return

@@ -28,6 +28,12 @@ import paramiko
 from paramiko.py3compat import b, u
 import os
 
+
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
+import honeypot_db_interface
+
 # setup logging
 paramiko.util.log_to_file('demo_server.log')
 
@@ -47,6 +53,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     clientIP = None
     clientUsername = ''
     clientPassword = ''
+    interface = honeypot_db_interface.honeypot_database_interface()
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -81,14 +88,14 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def run(self):
         self.lock.acquire()
-        print('SSH LOADED')
+        #print('SSH LOADED')
         self.lock.release()
         ## sets up a socket and begins listening for connection requests
         try:
             client, address, time = self.accept()
             self.lock.acquire()
             self.lock.release()
-            print('ssh connection attempting...')
+            #print('ssh connection attempting...')
             # creates the ssh transport over the socket
             t = paramiko.Transport(client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
@@ -99,7 +106,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 raise
             t.add_server_key(host_key)  # sets the server RSA key
             server = server_plugin(self.lock)
-            print('complete. Starting server')
+            #print('complete. Starting server')
             try:
                 # starts a new ssh server session and opens a thread for
                 # protocol negotiation.
@@ -110,7 +117,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             # Channel will always be none because the client cannot
             # authenticate to request a channel.
             if channel is None:
-                print('*** No channel.')
+                #print('*** No channel.')
+                pass
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
             try:
@@ -118,8 +126,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             except:
                 pass
         self.lock.acquire()
-        # Displays, then clears collected data fields.
+        # Displays, sends, then clears collected data fields.
         self.display_output()
+        self.send_output()
         self.clear_vars()
         self.lock.release()
 
@@ -144,7 +153,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         # Allows the user to submit a key for authentication,
         # if applicable, then captures the key
         server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
-        print('Auth attempt with key: ' + server_plugin.pulledKey)
+        #print('Auth attempt with key: ' + server_plugin.pulledKey)
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_with_mic(self, username,
@@ -191,6 +200,9 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         return True
 
     def display_output(self):
+        # Server-side display string
+        print('Attack: ' + server_plugin.time.__str__() + ' on port ' + server_plugin.PORT.__str__() + '.')
+        '''
         # Prints out all captured data from the attacker
         print('Attack time: ' + server_plugin.time.__str__())
         print('Attacker key: ' + server_plugin.pulledKey)
@@ -198,6 +210,18 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         print('Port of incoming attack: ' + server_plugin.PORT.__str__())
         print('Submitted username: ' + server_plugin.clientUsername)
         print('Submitted password: ' + server_plugin.clientPassword)
+        '''
+        return
+
+    def send_output(self):
+        # creates an output string to be sent to the database (via interface)
+        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),
+                                            'Data':{'Time':server_plugin.time.__str__(),
+                                                    'Username':server_plugin.clientUsername,
+                                                    'Passwords':server_plugin.clientPassword,
+                                                    'Key':server_plugin.pulledKey}}})
+        #print(dump_string)
+        server_plugin.interface.receive_data(dump_string)
         return
 
     def clear_vars(self):
