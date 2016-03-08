@@ -180,7 +180,7 @@ class client_thread(threading.Thread):
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
         self.lock.acquire()
-        print(dump_string)
+        # print(dump_string)
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return
