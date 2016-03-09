@@ -101,7 +101,7 @@ class client_thread(threading.Thread):
         self.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
         self.username = ''
         self.password = ''
-        self.time  = datetime.datetime.now().time()
+        self.time = datetime.datetime.now().time()
         self.data = ''
         self.daemon = True
         self.start()
@@ -181,7 +181,7 @@ class client_thread(threading.Thread):
                                                     'Data':self.data}}})
 
         self.lock.acquire()
-        print('Telnet Attack: ' + time.__str__() + ' on port ' + PORT.__str__() + '.')
+        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + PORT.__str__() + '.')
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return
