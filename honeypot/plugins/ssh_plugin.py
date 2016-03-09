@@ -202,8 +202,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def display_output(self):
         # Server-side display string
-        print('SSH Attack: ' + server_plugin.time.__str__() + ' from ' + server_plugin.clientIP,
-                                            + ' on port ' + server_plugin.PORT.__str__() + '.')
+        print('SSH Attack: ' + server_plugin.time.__str__() + ' from ' + server_plugin.clientIP + ' on port ' + server_plugin.PORT.__str__() + '.')
         '''
         # Prints out all captured data from the attacker
         print('Attack time: ' + server_plugin.time.__str__())
