@@ -101,7 +101,7 @@ class client_thread(threading.Thread):
         self.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
         self.username = ''
         self.password = ''
-        self.time  = datetime.datetime.now().time()
+        self.time = datetime.datetime.now().time()
         self.data = ''
         self.daemon = True
         self.start()
@@ -131,13 +131,23 @@ class client_thread(threading.Thread):
                 datarecieved = datarecieved.replace('\r\x00','')
                 # print repr(datarecieved)
                 if i == 0:
-                    self.username = datarecieved
+                    if len(datarecieved) > 128:
+                        self.username = datarecieved[0:127]
+                    else:
+                        self.username = datarecieved
+                    if not linux:
+                        self.conn.send('                    ')
                     self.conn.send('password: ')
                     i = i + 1
                 elif i == 1:
-                    self.password = datarecieved
+                    if len(datarecieved) > 128:
+                        self.password = datarecieved[0:127]
+                    else:
+                        self.password = datarecieved
                     if linux:
                         self.conn.send('>> ')
+                    else:
+                        self.conn.send('               ')
                     i = i + 1
                 else:
                     if self.data == '':
@@ -174,13 +184,14 @@ class client_thread(threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'ClientInfo':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
+        dump_string = json.dumps({'Client':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
                                             'Data':{'Time':self.time.__str__(),
                                                     'Username':self.username,
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
+
         self.lock.acquire()
-        # print(dump_string)
+        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + PORT.__str__() + '.')
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return
