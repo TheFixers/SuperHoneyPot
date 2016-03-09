@@ -146,6 +146,8 @@ class client_thread(threading.Thread):
                         self.password = datarecieved
                     if linux:
                         self.conn.send('>> ')
+                    else:
+                        self.conn.send('               ')
                     i = i + 1
                 else:
                     if self.data == '':
