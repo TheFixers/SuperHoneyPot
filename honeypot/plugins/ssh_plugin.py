@@ -202,7 +202,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def display_output(self):
         # Server-side display string
-        print('SSH Attack: ' + server_plugin.time.__str__() + ' on port ' + server_plugin.PORT.__str__() + '.')
+        print('SSH Attack: ' + server_plugin.time.__str__() + ' from ' + server_plugin.clientIP,
+                                            + ' on port ' + server_plugin.PORT.__str__() + '.')
         '''
         # Prints out all captured data from the attacker
         print('Attack time: ' + server_plugin.time.__str__())
@@ -216,7 +217,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),'Socket':str(server_plugin.ssh),
+        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),'Socket':str(server_plugin.sshSocket),
                                             'Data':{'Time':server_plugin.time.__str__(),
                                                     'Username':server_plugin.clientUsername,
                                                     'Passwords':server_plugin.clientPassword,
