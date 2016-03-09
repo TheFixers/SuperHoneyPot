@@ -131,11 +131,19 @@ class client_thread(threading.Thread):
                 datarecieved = datarecieved.replace('\r\x00','')
                 # print repr(datarecieved)
                 if i == 0:
-                    self.username = datarecieved
+                    if len(datarecieved) > 128:
+                        self.username = datarecieved[0:127]
+                    else:
+                        self.username = datarecieved
+                    if not linux:
+                        self.conn.send('                    ')
                     self.conn.send('password: ')
                     i = i + 1
                 elif i == 1:
-                    self.password = datarecieved
+                    if len(datarecieved) > 128:
+                        self.password = datarecieved[0:127]
+                    else:
+                        self.password = datarecieved
                     if linux:
                         self.conn.send('>> ')
                     i = i + 1
