@@ -65,6 +65,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def get_ssh_socket(self):
         try:
             ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_plugin.sshSocket = ssh_socket
             ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             ssh_socket.bind(('', server_plugin.PORT))
             return ssh_socket
@@ -215,7 +216,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),
+        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),'Socket':str(server_plugin.ssh),
                                             'Data':{'Time':server_plugin.time.__str__(),
                                                     'Username':server_plugin.clientUsername,
                                                     'Passwords':server_plugin.clientPassword,
