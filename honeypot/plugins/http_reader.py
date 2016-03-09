@@ -74,13 +74,12 @@ class web_server_handler(BaseHTTPRequestHandler):
         client_ip = self.client_address  # ip and port
         request_time = time.strftime("%H:%M:%S")
 
-        json_data = {'clientData': {'clientIP': client_ip,
-                                    'clientURL': client_url},
-                     'dateRequestedTime': request_time}
+        json_data = {'Client': {'IP': client_ip,'Port':PORT_NUMBER.__str__(),
+                                'Data':{'Time':request_time.__str__(),'clientURL':client_url}}}
 
         # export to db or something here
         data = json.dumps(json_data)
-        print(data)
+        print('HTTP Attack: ' + request_time.__str__() + ' on port ' + PORT_NUMBER.__str__() + '.')
         server_plugin.interface.receive_data(data)
 
 
