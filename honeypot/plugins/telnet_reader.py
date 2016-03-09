@@ -174,13 +174,14 @@ class client_thread(threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'ClientInfo':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
+        dump_string = json.dumps({'Client':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
                                             'Data':{'Time':self.time.__str__(),
                                                     'Username':self.username,
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
+
         self.lock.acquire()
-        # print(dump_string)
+        print('Telnet Attack: ' + time.__str__() + ' on port ' + PORT.__str__() + '.')
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return
