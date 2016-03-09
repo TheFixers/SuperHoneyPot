@@ -74,7 +74,7 @@ class web_server_handler(BaseHTTPRequestHandler):
         client_ip = self.client_address  # ip and port
         request_time = time.strftime("%H:%M:%S")
 
-        json_data = {'Client': {'IP': client_ip,'Port':PORT_NUMBER.__str__(),
+        json_data = {'Client': {'IP': client_ip,'Port':PORT_NUMBER.__str__(),'Socket':str(self.server.socket),
                                 'Data':{'Time':request_time.__str__(),'clientURL':client_url}}}
 
         # export to db or something here
