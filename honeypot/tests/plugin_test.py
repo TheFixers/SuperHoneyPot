@@ -68,3 +68,5 @@ class CommonBreakInAttempts(unittest.TestCase):
         self.assertTrue(False)
 
 
+if __name__ == '__main__':
+    unittest.main()
