@@ -105,7 +105,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
              conn.recv(1024)
              conn.recv(1024)
              conn.recv(1024)
-             conn.sendall('Username \r\n')
+             conn.send('Username \r\n')
              conn.recv(1024)
              conn.send('Password \r\n')
              conn.recv(1024)
