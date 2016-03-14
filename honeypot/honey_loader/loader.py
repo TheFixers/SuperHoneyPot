@@ -16,11 +16,13 @@
     along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
 import threading
 import time
 import sys
 import re
+import grp
+import os
+import pwd
 
 # sets path for reading in .py files to plugins folder
 path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
@@ -34,6 +36,20 @@ lock = None
 
 
 def start_plugins():
+
+    try:
+
+        if check_root() == 0:
+            start()
+        else:
+            print("We never got root! exiting now")
+            sys.exit(2)
+    except EnvironmentError as e:
+        print(str(e))
+
+
+
+def start():
     global lock
     try:
 
@@ -42,6 +58,8 @@ def start_plugins():
             if i != '' and i[:1] != '#':  # ignore blank lines and comments starting with #
                 plugin = __import__(i)
                 plugin.server_plugin(lock)
+
+        drop_privileges()
 
         while True:
             time.sleep(1)
@@ -56,6 +74,49 @@ def start_plugins():
         lock.release()
         sys.exit()
 
+
+# Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
+# Not sure how to check for this issue...
+
+# def prompt_sudo():
+#     ret = 0
+#     if os.geteuid() != 0:
+#         args = ['sudo', sys.executable] + sys.argv + [os.environ]
+#     # the next line replaces the currently-running process with the sudo
+#     os.execlpe('sudo', *args)
+#     return ret and os.geteuid() == 0
+
+
+def check_root():
+    # check if plugins really need root. This is from plugins.txt file
+    if lines[0] == "#root":
+        # first check if program has root access
+        if os.geteuid() == 0 or os.getegid() == 0:
+            return 0
+        else:
+            raise EnvironmentError, "need to be root"
+    else:
+        return 0
+
+
+def drop_privileges(uid_name="nobody", gid_name="nobody"):
+    if os.getuid() != 0:
+        # We're not root so, like, whatever dude
+        return
+
+    # Get the uid/gid from the name
+    running_uid = pwd.getpwnam(uid_name).pw_uid
+    running_gid = grp.getgrnam(gid_name).gr_gid
+
+    # Remove group privileges
+    os.setgroups([])
+
+    # Try setting the new uid/gid
+    os.setgid(running_gid)
+    os.setuid(running_uid)
+
+    # Ensure a very conservative umask
+    old_umask = os.umask(077)
 
 if __name__ == '__main__':
     start_plugins()

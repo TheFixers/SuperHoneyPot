@@ -1,3 +1,4 @@
+#root
 http_reader
 https_reader
 ssh_plugin
