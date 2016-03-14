@@ -6,7 +6,7 @@ install:
   # Build/test dependencies
   - pip install -r honeypot/requirements.txt
   # Get honeypot to test honeypot
-  - pip install -e .
+  - pip install -e honeypot
   # Deal with issue on Travis builders re: multiprocessing.Queue :(
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 script:
