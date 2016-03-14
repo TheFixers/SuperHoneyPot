@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
     This file is part of SuperHoneyPot.
 
@@ -30,6 +32,10 @@ import ssl
 path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
 sys.path.insert(0, path)
 
+
+private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugins", "data_files"))
+host_key = private_key_filepath + os.path.sep + "ssl.pem"
+
 import honeypot_db_interface
 
 PORT_NUMBER = 4443
@@ -53,7 +59,7 @@ class server_plugin(threading.Thread):
         try:
             self.server = HTTPServer(('', PORT_NUMBER), web_server_handler)
             # self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.server.socket = ssl.wrap_socket (self.server.socket, certfile='server.pem', server_side=True)
+            self.server.socket = ssl.wrap_socket (self.server.socket, certfile=host_key, server_side=True)
             self.lock.acquire()
             print 'Started httpserver on port ', PORT_NUMBER
             self.lock.release()

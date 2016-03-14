@@ -1,0 +1,13 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+install:
+  # Build/test dependencies
+  - pip install -r requirements.txt
+  # Get honeypot to test honeypot
+  - pip install -e .
+  # Deal with issue on Travis builders re: multiprocessing.Queue :(
+  - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
+script:
+    - nosetests

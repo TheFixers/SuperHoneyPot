@@ -1,3 +1,4 @@
+#!/usr/bin/python2
 """
     This file is part of SuperHoneyPot.
 
@@ -25,9 +26,9 @@ import re
 path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
 sys.path.insert(0, path)
 
-path = path.replace("plugins", "")
+path = path.replace("plugins", "data_files")
 
-text_file = open(path + "plugins.txt", "r")
+text_file = open(path + os.path.sep + "plugins.txt", "r")
 lines = re.split('\n| ', text_file.read())  # regex for new line and blanks
 lock = None
 

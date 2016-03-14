@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
     This file is part of SuperHoneyPot.
 
@@ -34,11 +36,8 @@ sys.path.insert(0, path)
 
 import honeypot_db_interface
 
-# setup logging
-paramiko.util.log_to_file('demo_server.log')
-
-currentFilePath = os.path.dirname(os.path.realpath(__file__))
-host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.key')
+private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugins", "data_files"))
+host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privateSSHKey.key')
 
 
 class server_plugin(paramiko.ServerInterface, threading.Thread):

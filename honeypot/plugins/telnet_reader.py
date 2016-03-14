@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
     This file is part of SuperHoneyPot.
 

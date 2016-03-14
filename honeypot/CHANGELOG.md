@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 
+## [0.3.5] - 2016-13-03
+### Added
+- Moved plugin config file and datafiles to data_files
+
+### Changed
+- Changed file locations in SSH plugin and HTTPS plugin
+
 ## [0.3.4] - 2016-04-03
 ### Added
 - Fixed loader for CPU utilization issue.
