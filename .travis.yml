@@ -4,7 +4,7 @@ python:
   - "2.7"
 install:
   # Build/test dependencies
-  - pip install -r requirements.txt
+  - pip install -r honeypot/requirements.txt
   # Get honeypot to test honeypot
   - pip install -e .
   # Deal with issue on Travis builders re: multiprocessing.Queue :(
