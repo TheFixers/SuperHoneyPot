@@ -28,6 +28,10 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 '''
 class SSHClient():
     def start(self):
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect(("localhost", 22))
+
+    def run(self):
         self.ssh = paramiko.SSHClient()
         self.ssh.load_host_keys('dummypublickey')
         # ssh.load_system_host_keys()
@@ -35,7 +39,8 @@ class SSHClient():
         self.ssh.connect('localhost', 22, username='local@localhost', password='True')
     def close(self):
         self.ssh.close
-
+    def stop(self):
+        self.conn.close
 class GeneralServerTest(unittest.TestCase):
 
     # Checks to see if the server will start and accept a valid connection
@@ -159,28 +164,57 @@ class GeneralServerTest(unittest.TestCase):
 
     # not sure how to make this occur yet
     # Makes sure the server can accept multiple request at once
-    # def test_multithreads(self):
+    def test_multithreads(self):
+        try:
+            lock = threading.Lock()
+            sshServer = ssh_plugin.server_plugin(lock)
+        except Exception as e:
+            self.fail("Server Failed to Start")
+        try:
+            threads = []
+            for num in range(0, 4):
+                thread = SSHClient()
+                thread.start()
+                threads.append(thread)
+
+            for thread in threads:
+                thread.stop()
+            connection = True
+        except paramiko.AuthenticationException:
+                connection = False
+        except Exception as e:
+            connection = False
+        finally:
+            self.assertTrue(connection)
+
+
+
+    # def shell_shock_test (self):
     #     try:
     #         lock = threading.Lock()
     #         sshServer = ssh_plugin.server_plugin(lock)
     #     except Exception as e:
-    #         self.fail("Server Failed to Start")
-    #     try:
-    #         threads = []
-    #         for num in range(0, 4):
-    #             thread = SSHClient()
-    #             thread.start()
-    #             threads.append(thread)
+    #     print("Server Failed to Start")
     #
-    #         for thread in threads:
-    #             thread.join()
+    #     try:
+    #         ssh = paramiko.SSHClient()
+    #         ssh.set_missing_host_key_policy(
+    #                 paramiko.AutoAddPolicy())
+    #         ssh.connect('localhost', username='root@localhost',
+    #                     password='env z="() { :; }; echo vulnerable" bash -c "echo foo"')
+    #
     #         connection = True
-    #     except paramiko.AuthenticationException:
-    #             connection = True
     #     except Exception as e:
-    #         connection = False
+    #
+    #         if e.message == 'Authentication failed.':
+    #             connection = True
+    #         else:
+    #             print e
+    #             connection = False
     #     finally:
-    #         self.assertTrue(connection)
+    #         print(connection)
+    #         ssh.close()
+
 
 
 '''

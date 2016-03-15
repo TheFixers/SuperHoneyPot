@@ -26,7 +26,7 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
-class mulithread_client(threading.Thread):
+class HttpClient(threading.Thread):
     def run(self):
         conn = httplib.HTTPConnection('localhost:80')
         conn.request("GET", "/")
@@ -148,7 +148,7 @@ class GeneralServerTest(unittest.TestCase):
         try:
             threads = []
             for num in range(0, 4):
-                thread = mulithread_client()
+                thread = HttpClient()
                 thread.start()
                 threads.append(thread)
 

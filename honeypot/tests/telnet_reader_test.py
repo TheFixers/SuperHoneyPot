@@ -23,7 +23,7 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
-class mulithread_client(threading.Thread):
+class telent_client(threading.Thread):
     def run(self):
         conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         conn.connect(("localhost", 23))
@@ -159,7 +159,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
         try:
             threads = []
             for num in range(0, 4):
-                thread = mulithread_client()
+                thread = telent_client()
                 thread.start()
                 threads.append(thread)
 
