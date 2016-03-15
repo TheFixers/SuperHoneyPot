@@ -72,8 +72,8 @@ def start():
     except Exception as e:
         lock.acquire()
         print('ERROR: ' + str(e))
-        lock.release()
         sys.exit()
+        lock.release()
 
 
 # Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
