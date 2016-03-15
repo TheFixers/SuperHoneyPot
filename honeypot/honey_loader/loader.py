@@ -59,6 +59,7 @@ def start():
                 plugin = __import__(i)
                 plugin.server_plugin(lock)
 
+        time.sleep(1)     # wait 1 second so last plugin has time to bind
         drop_privileges()
 
         while True:
@@ -99,7 +100,7 @@ def check_root():
         return 0
 
 
-def drop_privileges(uid_name="nobody", gid_name="nobody"):
+def drop_privileges(uid_name="nobody", gid_name="nogroup"):
     if os.getuid() != 0:
         # We're not root so, like, whatever dude
         return
