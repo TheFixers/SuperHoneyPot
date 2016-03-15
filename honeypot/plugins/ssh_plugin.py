@@ -80,7 +80,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_thread(self.lock, conn, addr)
+            client_thread(self.lock, conn, addr, PORT)
 
         try:
             while True:
@@ -91,6 +91,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 class client_thread(paramiko.ServerInterface, threading.Thread):
 
     client = None
+    PORT = None
     address = None
     socket = None
     time = None
@@ -102,11 +103,13 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
     clientPassword = ''
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock, conn, addr):
+    def __init__(self, lock, conn, addr, PORT):
         threading.Thread.__init__(self)
         self.lock = lock
         client_thread.client = conn
-        client_thread.address = addr[0]    # explination of (ip, port) in addr 
+        client_thread.address = addr    # explination of (ip, port) in addr 
+        client_thread.clientIP = addr[0]
+        client_thread.PORT = PORT
         client_thread.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
         client_thread.time = datetime.datetime.now().time()
         self.daemon = True
@@ -114,10 +117,11 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def tear_down(self):
         self.lock.acquire()
-        print 'telnet closing'   
+        print 'ssh closing'   
         self.lock.release()     
         self.s.close()
 
+    def run(self):
         # sets up a socket and begins listening for connection requests
         try:
 
@@ -153,7 +157,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         self.lock.acquire()
         # Displays, sends, then clears collected data fields.
         self.display_output()
-        self.send_output()
+        self.send_output() 
         self.lock.release()
 
     def check_channel_request(self, kind, chanid):
@@ -239,7 +243,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':client_thread.clientIP,'Port':client_thread.PORT.__str__(),'Socket':str(client_thread.sshSocket),
+        dump_string = json.dumps({'Client':{'IP':client_thread.clientIP,'Port':PORT.__str__(),'Socket':str(client_thread.socket),
                                             'Data':{'Time':client_thread.time.__str__(),
                                                     'Username':client_thread.clientUsername,
                                                     'Passwords':client_thread.clientPassword,
