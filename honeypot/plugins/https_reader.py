@@ -38,7 +38,7 @@ host_key = private_key_filepath + os.path.sep + "ssl.pem"
 
 import honeypot_db_interface
 
-PORT_NUMBER = 4443
+PORT_NUMBER = 443
 
 
 class server_plugin(threading.Thread):
