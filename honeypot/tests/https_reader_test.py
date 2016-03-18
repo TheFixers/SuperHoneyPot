@@ -48,8 +48,7 @@ class GeneralServerTest(unittest.TestCase):
             self.fail("Server Failed to Start")
 
         try:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 443))
+            conn =httplib.HTTPSConnection('localhost', 4443, timeout=5, context=ssl._create_unverified_context())
             connection = True
         except Exception as e:
             print e
