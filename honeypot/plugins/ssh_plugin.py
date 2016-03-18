@@ -44,7 +44,7 @@ host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privat
 PORT = 22
 HOST = ''
 
-class server_plugin(paramiko.ServerInterface, threading.Thread):
+class server_plugin(threading.Thread):
 
     def __init__(self, lock):
         threading.Thread.__init__(self)
@@ -80,7 +80,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_thread(self.lock, conn, addr, PORT)
+            client_thread(conn, addr, self.lock)
 
         try:
             while True:
@@ -103,7 +103,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
     clientPassword = ''
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock, conn, addr, PORT):
+    def __init__(self, conn, addr, lock):
         threading.Thread.__init__(self)
         self.lock = lock
         client_thread.client = conn
@@ -126,7 +126,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         try:
 
             # creates the ssh transport over the socket
-
             t = paramiko.Transport(client_thread.client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
             try:
@@ -135,7 +134,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
             t.add_server_key(host_key)  # sets the server RSA key
-            server = client_thread(self.lock)
+            server = self
 
             try:
                 # starts a new ssh server session and opens a thread for
