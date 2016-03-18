@@ -20,12 +20,16 @@
 
 from pymongo import MongoClient
 import json, bson
+import os
 
+
+path_to_mongoClient = os.path.dirname(os.path.realpath(__file__)).replace("db_interface", "data_files")
+mongoClient = open(path_to_mongoClient + os.path.sep + "mongoClient.txt", "r").read() # get first line of file
 
 class honeypot_database_interface():
 
     # this will contain the information needed to connect to the remote database
-    db_host = MongoClient("mongodb://HoneyPot:TeddyBearFood123@54.200.61.193:27017/HoneyPot")
+    db_host = MongoClient(mongoClient)
     database = db_host.HoneyPot
 
     def __init__(self):
