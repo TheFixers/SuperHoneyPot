@@ -87,6 +87,12 @@ class server_plugin(threading.Thread):
         except KeyboardInterrupt, IOError:
                 self.tear_down()
 
+    def tear_down(self):
+        self.lock.acquire()
+        print 'ssh '+str(self.port)+' closing'   
+        self.lock.release()     
+        self.s.close()
+
 class client_thread(paramiko.ServerInterface, threading.Thread):
 
     client = None
@@ -113,12 +119,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         client_thread.time = datetime.datetime.now().time()
         self.daemon = True
         self.start()
-
-    def tear_down(self):
-        self.lock.acquire()
-        print 'ssh closing'   
-        self.lock.release()     
-        self.s.close()
 
     def run(self):
         # sets up a socket and begins listening for connection requests
