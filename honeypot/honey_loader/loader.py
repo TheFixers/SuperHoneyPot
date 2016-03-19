@@ -57,8 +57,8 @@ def start():
         lock = threading.Lock()
         for line in lines:
             plug = line.pop(0)          #first index is plugin name
+            plugin = __import__(plug)
             for port in line:
-                plugin = __import__(plug)
                 plugin.server_plugin(lock, port)
 
         time.sleep(1)     # wait 1 second so last plugin has time to bind
