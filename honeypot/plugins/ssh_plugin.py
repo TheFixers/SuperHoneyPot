@@ -61,7 +61,7 @@ class server_plugin(threading.Thread):
             self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
-            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            print "ERROR: " + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
             self.lock.release()
             sys.exit()
 
@@ -87,6 +87,13 @@ class server_plugin(threading.Thread):
         except KeyboardInterrupt, IOError:
                 self.tear_down()
 
+    def tear_down(self):
+        self.lock.acquire()
+        print 'ssh closing'
+        self.lock.release()
+        self.s.close()
+
+
 class client_thread(paramiko.ServerInterface, threading.Thread):
 
     client = None
@@ -110,15 +117,9 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         client_thread.clientIP = addr[0]
         client_thread.PORT = port
         client_thread.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
-        client_thread.time = datetime.datetime.now().time()
+        client_thread.time = time.time()
         self.daemon = True
         self.start()
-
-    def tear_down(self):
-        self.lock.acquire()
-        print 'ssh closing'   
-        self.lock.release()     
-        self.s.close()
 
     def run(self):
         # sets up a socket and begins listening for connection requests
@@ -211,7 +212,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def enable_auth_gssapi(self):
         UseGSSAPI = True
-        GSSAPICleanupCredentials = False
         return UseGSSAPI
 
     def get_allowed_auths(self, username):

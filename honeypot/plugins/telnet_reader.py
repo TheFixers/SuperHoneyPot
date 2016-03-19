@@ -104,14 +104,14 @@ class client_thread(threading.Thread):
         self.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
         self.username = ''
         self.password = ''
-        self.time = datetime.datetime.now().time()
+        self.time = time.time()
         self.data = ''
         self.daemon = True
         self.start()
 
     def run(self):
         global datarecieved
-        line = ''
+
         i = 0
         self.conn.send('\n')
         self.conn.send('\n')
@@ -141,7 +141,7 @@ class client_thread(threading.Thread):
                     if not linux:
                         self.conn.send('                    ')
                     self.conn.send('password: ')
-                    i = i + 1
+                    i += 1
                 elif i == 1:
                     if len(datarecieved) > 128:
                         self.password = datarecieved[0:127]
@@ -151,7 +151,7 @@ class client_thread(threading.Thread):
                         self.conn.send('>> ')
                     else:
                         self.conn.send('               ')
-                    i = i + 1
+                    i += 1
                 else:
                     if self.data == '':
                         self.data = datarecieved
@@ -163,7 +163,7 @@ class client_thread(threading.Thread):
                         self.conn.send('Invalid command\n')
                     if linux:
                         self.conn.send('>> ')
-                    i = i+1
+                    i += 1
                 datarecieved = ""
             # first line on connection with linux is this giant string so just removing that nonsense
             elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
@@ -174,7 +174,7 @@ class client_thread(threading.Thread):
             # these two are ctrl+c in linux and in windows. Easier way to end program. 
             if i == 7 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
                 self.lock.acquire()
-                print self.ip + ':' + str(self.socket) + ': ' +'Connection terminated.'
+                print self.ip + ':' + str(self.socket) + ': ' + 'Connection terminated.'
                 self.lock.release()
                 break
 

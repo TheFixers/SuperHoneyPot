@@ -102,7 +102,7 @@ def check_root():
         return 0
 
 
-def drop_privileges(uid_name="nobody", gid_name="nogroup"):
+def drop_privileges(uid_name="nobody", gid_name="nobody"):
     if os.getuid() != 0:
         # We're not root so, like, whatever dude
         return

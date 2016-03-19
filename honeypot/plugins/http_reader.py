@@ -19,7 +19,7 @@
 
 import socket
 import json
-import datetime
+import time
 import threading
 import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -74,7 +74,7 @@ class web_server_handler(BaseHTTPRequestHandler):
 
         client_url = self.path
         client_ip = self.client_address  # ip and port
-        request_time = datetime.datetime.now().time()
+        request_time = time.time()
 
         json_data = {'Client': {'TYPE':"HTTP",'IP': client_ip[0],'Port':str(self.server.server_address[1]),'Socket':str(client_ip[1]),
                                 'Data':{'Time':request_time.__str__(),'clientURL':client_url}}}
