@@ -36,14 +36,14 @@ sys.path.insert(0, path)
 import honeypot_db_interface
 
  
-HOST = '' 
-PORT = 23
+HOST = ''
 ERROR = 'error from Telnet plugin: '
 
 class server_plugin(threading.Thread):
 
-    def __init__(self, lock):
+    def __init__(self, lock, port):
         threading.Thread.__init__(self)
+        self.port = int(float(port))
         self.lock = lock
         self.daemon = True
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,7 +54,7 @@ class server_plugin(threading.Thread):
         #Bind socket to local host and port
         try:
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.s.bind((HOST, PORT))
+            self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
             print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
@@ -65,7 +65,7 @@ class server_plugin(threading.Thread):
         #Start listening on socket
         self.s.listen(4)
         self.lock.acquire()
-        print 'Started telnet server on port ', PORT
+        print 'Started telnet server on port ', self.port
         self.lock.release()
 
         #now keep talking with the client
@@ -76,7 +76,7 @@ class server_plugin(threading.Thread):
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_thread(self.lock, conn, addr)
+            client_thread(self.lock, conn, addr, self.port)
 
         try:
             while True:
@@ -95,8 +95,9 @@ class client_thread(threading.Thread):
 
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock, conn, addr):
+    def __init__(self, lock, conn, addr, port):
         threading.Thread.__init__(self)
+        self.port = port
         self.lock = lock
         self.conn = conn
         self.ip = addr[0]    # explination of (ip, port) in addr 
@@ -186,14 +187,14 @@ class client_thread(threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
+        dump_string = json.dumps({'Client':{'TYPE':"Telnet",'IP':self.ip,'Port':self.port.__str__(), 'Socket':str(self.socket),
                                             'Data':{'Time':self.time.__str__(),
                                                     'Username':self.username,
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
 
         self.lock.acquire()
-        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + PORT.__str__() + '.')
+        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + self.port.__str__() + '.')
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return

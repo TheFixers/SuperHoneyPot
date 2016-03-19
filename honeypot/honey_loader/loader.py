@@ -23,13 +23,13 @@ import re
 import grp
 import os
 import pwd
+import pluginsReader
 
 # sets path for reading in .py files to plugins folder
 path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
 sys.path.insert(0, path)
 
 path = path.replace("plugins", "data_files")
-
 text_file = open(path + os.path.sep + "plugins.txt", "r")
 lines = re.split('\n| ', text_file.read())  # regex for new line and blanks
 lock = None
@@ -50,14 +50,16 @@ def start_plugins():
 
 
 def start():
+    lines = pluginsReader.lineReader()
     global lock
     try:
 
         lock = threading.Lock()
-        for i in lines:
-            if i != '' and i[:1] != '#':  # ignore blank lines and comments starting with #
-                plugin = __import__(i)
-                plugin.server_plugin(lock)
+        for line in lines:
+            plug = line.pop(0)          #first index is plugin name
+            for port in line:
+                plugin = __import__(plug)
+                plugin.server_plugin(lock, port)
 
         time.sleep(1)     # wait 1 second so last plugin has time to bind
         drop_privileges()
