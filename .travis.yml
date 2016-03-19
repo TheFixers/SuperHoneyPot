@@ -1,7 +1,9 @@
+sudo: true
 language: python
 python:
   - "2.6"
   - "2.7"
+  - "2.7.11"
 install:
   # Build/test dependencies
   - pip install -r honeypot/requirements.txt
@@ -10,4 +12,5 @@ install:
   # Deal with issue on Travis builders re: multiprocessing.Queue :(
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 script:
-    - nosetests
+    - sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
+    - sudo nosetests
