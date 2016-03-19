@@ -64,6 +64,7 @@ class server_plugin(threading.Thread):
             self.tear_down()
 
     def tear_down(self):
+        print 'HTTP '+str(self.port)+' closing' 
         self.server.socket.close()
         self.server.shutdown()
 
