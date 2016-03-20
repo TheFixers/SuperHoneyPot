@@ -88,9 +88,7 @@ class server_plugin(threading.Thread):
                 self.tear_down()
 
     def tear_down(self):
-        self.lock.acquire()
         print 'ssh ' + str(self.port) + ' closing'
-        self.lock.release()
         self.s.close()
 
 

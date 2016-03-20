@@ -84,9 +84,7 @@ class server_plugin(threading.Thread):
                 self.tear_down()
 
     def tear_down(self):
-        self.lock.acquire()
         print 'telnet '+str(self.port)+' closing'  
-        self.lock.release()     
         self.s.close()
 
 #Class for handling connections. This will be used to create threads
@@ -126,7 +124,7 @@ class client_thread(threading.Thread):
 
             #Receiving from client
             data = self.conn.recv(1024)
-            # print repr(data)
+            print repr(data)
             if "\r\n" in data or '\r\x00' in data:
                 datarecieved = datarecieved + data
                 datarecieved = datarecieved.replace('\r\n','')
