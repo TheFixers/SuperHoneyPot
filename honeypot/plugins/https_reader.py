@@ -17,13 +17,11 @@
     along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import socket
 import json
 import time
 import threading
-import thread
+
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from os import curdir, sep
 import os
 import sys
 import ssl

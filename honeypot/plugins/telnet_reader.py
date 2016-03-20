@@ -20,12 +20,11 @@
 '''
     Simple socket server using threads
 '''
-import datetime
+
 import time
 import threading
 import socket
 import sys
-import signal
 import json
 import os
 

@@ -48,7 +48,6 @@ def start_plugins():
         print(str(e))
 
 
-
 def start():
     lines = pluginsReader.lineReader()
     global lock
@@ -79,8 +78,10 @@ def start():
         print('ERROR: ' + str(e))
         for plugin in plugins:
             plugin.tear_down()
-        sys.exit()
+
         lock.release()
+        sys.exit()
+
 
 # Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
 # Not sure how to check for this issue...

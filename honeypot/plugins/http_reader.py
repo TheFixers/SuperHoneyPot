@@ -21,9 +21,7 @@ import socket
 import json
 import time
 import threading
-import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from os import curdir, sep
 import os
 import sys
 
@@ -32,7 +30,6 @@ path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interf
 sys.path.insert(0, path)
 
 import honeypot_db_interface
-
 
 
 class server_plugin(threading.Thread):
