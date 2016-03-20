@@ -52,6 +52,7 @@ def start_plugins():
 def start():
     lines = pluginsReader.lineReader()
     global lock
+    plugins = []
     try:
 
         lock = threading.Lock()
@@ -59,7 +60,7 @@ def start():
             plug = line.pop(0)          #first index is plugin name
             plugin = __import__(plug)
             for port in line:
-                plugin.server_plugin(lock, port)
+                plugins.append(plugin.server_plugin(lock, port))
 
         time.sleep(1)     # wait 1 second so last plugin has time to bind
         drop_privileges()
@@ -70,13 +71,16 @@ def start():
         lock.acquire()
         print '\nexiting via KeyboardInterrupt'
         lock.release()
+        for plugin in plugins:
+            plugin.tear_down()
         sys.exit()
     except Exception as e:
         lock.acquire()
         print('ERROR: ' + str(e))
+        for plugin in plugins:
+            plugin.tear_down()
         sys.exit()
         lock.release()
-
 
 # Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
 # Not sure how to check for this issue...
