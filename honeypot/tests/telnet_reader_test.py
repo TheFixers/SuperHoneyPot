@@ -25,7 +25,10 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
-class mulithread_client(threading.Thread):
+
+PORT = 23
+
+class telent_client(threading.Thread):
     def run(self):
         conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         conn.connect(("localhost", 23))
@@ -36,7 +39,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
     def test_startUp(self):
         try:
             lock = threading.Lock()
-            telnet = telnet_reader.server_plugin(lock)
+            telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -55,7 +58,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
 
         try:
             lock = threading.Lock()
-            telnet = telnet_reader.server_plugin(lock)
+            telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -92,7 +95,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
          connection = False
          try:
              lock = threading.Lock()
-             telnet = telnet_reader.server_plugin(lock)
+             telnet = telnet_reader.server_plugin(lock, PORT)
          except Exception as e:
              print e
              self.fail("server failed to start")
@@ -129,7 +132,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
     def test_invalidport(self):
         try:
             lock = threading.Lock()
-            telnet = telnet_reader.server_plugin(lock)
+            telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -154,14 +157,14 @@ class GeneralTelnetReaderTest(unittest.TestCase):
     def test_mulithreads(self):
         try:
              lock = threading.Lock()
-             telnet = telnet_reader.server_plugin(lock)
+             telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
         try:
             threads = []
             for num in range(0, 4):
-                thread = mulithread_client()
+                thread = telent_client()
                 thread.start()
                 threads.append(thread)
 
