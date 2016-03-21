@@ -28,6 +28,8 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
+PORT  = 22
+
 class SSHClient():
     def start(self):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,7 +51,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_startUp(self):
         try:
             lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock)
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -69,7 +71,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_run(self):
         try:
             lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock)
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -99,7 +101,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_teardown(self):
         try:
             lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock)
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
         try:
@@ -114,6 +116,7 @@ class GeneralServerTest(unittest.TestCase):
         except Exception as e:
         # Currently SSH is design to fail on any password.
             if e.message == "'server_plugin' object has no attribute 'teardown'":
+                print e.message
                 connection = False
             else:
                 # print e.message
@@ -126,7 +129,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_invalidPort(self):
         try:
             lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock)
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
         try:
@@ -169,7 +172,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_multithreads(self):
         try:
             lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock)
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
         try:
@@ -191,31 +194,30 @@ class GeneralServerTest(unittest.TestCase):
 
 
 
-    # def shell_shock_test (self):
-    #     try:
-    #         lock = threading.Lock()
-    #         sshServer = ssh_plugin.server_plugin(lock)
-    #     except Exception as e:
-    #     print("Server Failed to Start")
-    #
-    #     try:
-    #         ssh = paramiko.SSHClient()
-    #         ssh.set_missing_host_key_policy(
-    #                 paramiko.AutoAddPolicy())
-    #         ssh.connect('localhost', username='root@localhost',
-    #                     password='env z="() { :; }; echo vulnerable" bash -c "echo foo"')
-    #
-    #         connection = True
-    #     except Exception as e:
-    #
-    #         if e.message == 'Authentication failed.':
-    #             connection = True
-    #         else:
-    #             print e
-    #             connection = False
-    #     finally:
-    #         print(connection)
-    #         ssh.close()
+    def shell_shock_test (self):
+        try:
+            lock = threading.Lock()
+            sshServer = ssh_plugin.server_plugin(lock, PORT)
+        except Exception as e:
+            print("Server Failed to Start")
+
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(
+                    paramiko.AutoAddPolicy())
+            ssh.connect('localhost', username='root@localhost',
+                        password='env z="() { :; }; echo vulnerable" bash -c "echo foo"')
+
+            connection = True
+        except Exception as e:
+            if e.message == 'Authentication failed.':
+                connection = True
+            else:
+                print e
+                connection = False
+        finally:
+            print(connection)
+            ssh.close()
 
 
 

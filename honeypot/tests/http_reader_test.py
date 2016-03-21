@@ -28,6 +28,10 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
+
+PORT = 80
+
+
 class HttpClient(threading.Thread):
     def run(self):
         conn = httplib.HTTPConnection('localhost:80')
@@ -43,7 +47,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_startUp(self):
         try:
             lock = threading.Lock()
-            http = http_reader.server_plugin(lock)
+            http = http_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -61,7 +65,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_run(self):
         try:
             lock = threading.Lock()
-            http = http_reader.server_plugin(lock)
+            http = http_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -84,7 +88,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_teardown(self):
         try:
             lock = threading.Lock()
-            http = http_reader.server_plugin(lock)
+            http = http_reader.server_plugin(lock, PORT)
         except Exception as e:
             print e
             self.fail("Failed to startup server")
@@ -116,7 +120,7 @@ class GeneralServerTest(unittest.TestCase):
 
         try:
             lock = threading.Lock()
-            http = http_reader.server_plugin(lock)
+            http = http_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -143,7 +147,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_multithreads(self):
         try:
             lock = threading.Lock()
-            http = http_reader.server_plugin(lock)
+            http = http_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 

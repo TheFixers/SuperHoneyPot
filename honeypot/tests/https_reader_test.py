@@ -27,6 +27,9 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 
 
 '''
+PORT = 4443
+
+
 class mulithread_client(threading.Thread):
     def run(self):
         conn = httplib.HTTPSConnection('localhost', 4443, timeout=5, context=ssl._create_unverified_context())
@@ -43,7 +46,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_startUp(self):
         try:
             lock = threading.Lock()
-            https = https_reader.server_plugin(lock)
+            https = https_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -60,7 +63,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_run(self):
         try:
             lock = threading.Lock()
-            https = https_reader.server_plugin(lock)
+            https = https_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -83,7 +86,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_teardown(self):
         try:
             lock = threading.Lock()
-            https = https_reader.server_plugin(lock)
+            https = https_reader.server_plugin(lock, PORT)
         except Exception as e:
             print e
             self.fail("Failed to startup server")
@@ -115,7 +118,7 @@ class GeneralServerTest(unittest.TestCase):
 
         try:
             lock = threading.Lock()
-            https = https_reader.server_plugin(lock)
+            https = https_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
@@ -142,7 +145,7 @@ class GeneralServerTest(unittest.TestCase):
     def test_multithreads(self):
         try:
             lock = threading.Lock()
-            https = https_reader.server_plugin(lock)
+            https = https_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
