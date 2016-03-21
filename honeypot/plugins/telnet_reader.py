@@ -20,12 +20,11 @@
 '''
     Simple socket server using threads
 '''
-import datetime
+
 import time
 import threading
 import socket
 import sys
-import signal
 import json
 import os
 
@@ -36,14 +35,14 @@ sys.path.insert(0, path)
 import honeypot_db_interface
 
  
-HOST = '' 
-PORT = 23
+HOST = ''
 ERROR = 'error from Telnet plugin: '
 
 class server_plugin(threading.Thread):
 
-    def __init__(self, lock):
+    def __init__(self, lock, port):
         threading.Thread.__init__(self)
+        self.port = int(float(port))
         self.lock = lock
         self.daemon = True
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,7 +53,7 @@ class server_plugin(threading.Thread):
         #Bind socket to local host and port
         try:
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.s.bind((HOST, PORT))
+            self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
             print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
@@ -65,7 +64,7 @@ class server_plugin(threading.Thread):
         #Start listening on socket
         self.s.listen(4)
         self.lock.acquire()
-        print 'Started telnet server on port ', PORT
+        print 'Started telnet server on port ', self.port
         self.lock.release()
 
         #now keep talking with the client
@@ -76,7 +75,7 @@ class server_plugin(threading.Thread):
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_thread(self.lock, conn, addr)
+            client_thread(self.lock, conn, addr, self.port)
 
         try:
             while True:
@@ -85,9 +84,7 @@ class server_plugin(threading.Thread):
                 self.tear_down()
 
     def tear_down(self):
-        self.lock.acquire()
-        print 'telnet closing'   
-        self.lock.release()     
+        print 'telnet '+str(self.port)+' closing'  
         self.s.close()
 
 #Class for handling connections. This will be used to create threads
@@ -95,22 +92,23 @@ class client_thread(threading.Thread):
 
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock, conn, addr):
+    def __init__(self, lock, conn, addr, port):
         threading.Thread.__init__(self)
+        self.port = port
         self.lock = lock
         self.conn = conn
         self.ip = addr[0]    # explination of (ip, port) in addr 
         self.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
         self.username = ''
         self.password = ''
-        self.time = datetime.datetime.now().time()
+        self.time = time.time()
         self.data = ''
         self.daemon = True
         self.start()
 
     def run(self):
         global datarecieved
-        line = ''
+
         i = 0
         self.conn.send('\n')
         self.conn.send('\n')
@@ -126,7 +124,7 @@ class client_thread(threading.Thread):
 
             #Receiving from client
             data = self.conn.recv(1024)
-            # print repr(data)
+            print repr(data)
             if "\r\n" in data or '\r\x00' in data:
                 datarecieved = datarecieved + data
                 datarecieved = datarecieved.replace('\r\n','')
@@ -140,7 +138,7 @@ class client_thread(threading.Thread):
                     if not linux:
                         self.conn.send('                    ')
                     self.conn.send('password: ')
-                    i = i + 1
+                    i += 1
                 elif i == 1:
                     if len(datarecieved) > 128:
                         self.password = datarecieved[0:127]
@@ -150,7 +148,7 @@ class client_thread(threading.Thread):
                         self.conn.send('>> ')
                     else:
                         self.conn.send('               ')
-                    i = i + 1
+                    i += 1
                 else:
                     if self.data == '':
                         self.data = datarecieved
@@ -162,7 +160,7 @@ class client_thread(threading.Thread):
                         self.conn.send('Invalid command\n')
                     if linux:
                         self.conn.send('>> ')
-                    i = i+1
+                    i += 1
                 datarecieved = ""
             # first line on connection with linux is this giant string so just removing that nonsense
             elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
@@ -173,7 +171,7 @@ class client_thread(threading.Thread):
             # these two are ctrl+c in linux and in windows. Easier way to end program. 
             if i == 7 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
                 self.lock.acquire()
-                print self.ip + ':' + str(self.socket) + ': ' +'Connection terminated.'
+                print self.ip + ':' + str(self.socket) + ': ' + 'Connection terminated.'
                 self.lock.release()
                 break
 
@@ -186,14 +184,14 @@ class client_thread(threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':self.ip,'Port':PORT.__str__(), 'Socket':str(self.socket),
+        dump_string = json.dumps({'Client':{'TYPE':"Telnet",'IP':self.ip,'Port':self.port.__str__(), 'Socket':str(self.socket),
                                             'Data':{'Time':self.time.__str__(),
                                                     'Username':self.username,
                                                     'Passwords':self.password,
                                                     'Data':self.data}}})
 
         self.lock.acquire()
-        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + PORT.__str__() + '.')
+        print('Telnet Attack: ' + self.time.__str__() + ' from ' + self.ip + ' on port ' + self.port.__str__() + '.')
         client_thread.interface.receive_data(dump_string)        
         self.lock.release()
         return

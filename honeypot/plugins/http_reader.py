@@ -21,9 +21,7 @@ import socket
 import json
 import time
 import threading
-import thread
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from os import curdir, sep
 import os
 import sys
 
@@ -33,15 +31,14 @@ sys.path.insert(0, path)
 
 import honeypot_db_interface
 
-PORT_NUMBER = 80
-
 
 class server_plugin(threading.Thread):
 
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock):
+    def __init__(self, lock, port):
         threading.Thread.__init__(self)
+        self.port = int(float(port))
         self.lock = lock
         self.daemon = True
         self.start()
@@ -52,10 +49,10 @@ class server_plugin(threading.Thread):
         # incoming request
 
         try:
-            self.server = HTTPServer(('', PORT_NUMBER), web_server_handler)
+            self.server = HTTPServer(('', self.port), web_server_handler)
             self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.lock.acquire()
-            print 'Started httpserver on port ', PORT_NUMBER
+            print 'Started httpserver on port ', self.port
             self.lock.release()
             # Wait forever for incoming htto requests
             self.server.serve_forever()
@@ -64,6 +61,7 @@ class server_plugin(threading.Thread):
             self.tear_down()
 
     def tear_down(self):
+        print 'HTTP '+str(self.port)+' closing'
         self.server.socket.close()
         self.server.shutdown()
 
@@ -74,14 +72,13 @@ class web_server_handler(BaseHTTPRequestHandler):
 
         client_url = self.path
         client_ip = self.client_address  # ip and port
-        request_time = time.strftime("%H:%M:%S")
+        request_time = time.time()
 
-        json_data = {'Client': {'IP': client_ip,'Port':PORT_NUMBER.__str__(),'Socket':str(self.server.socket),
+        json_data = {'Client': {'TYPE':"HTTP",'IP': client_ip[0],'Port':str(self.server.server_address[1]),'Socket':str(client_ip[1]),
                                 'Data':{'Time':request_time.__str__(),'clientURL':client_url}}}
-
         # export to db or something here
         data = json.dumps(json_data)
-        print('HTTP Attack: ' + request_time.__str__() + ' on port ' + PORT_NUMBER.__str__() + '.')
+        print('HTTP Attack: ' + request_time.__str__() + ' on port ' + str(self.server.server_address[1]) + '.')
         server_plugin.interface.receive_data(data)
 
 

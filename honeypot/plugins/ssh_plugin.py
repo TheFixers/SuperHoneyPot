@@ -40,14 +40,13 @@ import honeypot_db_interface
 private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugins", "data_files"))
 host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privateSSHKey.key')
 
-
-PORT = 22
 HOST = ''
 
 class server_plugin(threading.Thread):
 
-    def __init__(self, lock):
+    def __init__(self, lock, port):
         threading.Thread.__init__(self)
+        self.port = int(float(port))
         self.lock = lock
         self.daemon = True
         self.event = threading.Event()
@@ -59,17 +58,17 @@ class server_plugin(threading.Thread):
         #Bind socket to local host and port
         try:
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.s.bind((HOST, PORT))
+            self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
-            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            print "ERROR: " + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
             self.lock.release()
             sys.exit()
 
         #Start listening on socket
         self.s.listen(4)
         self.lock.acquire()
-        print 'Started ssh server on port ', PORT
+        print 'Started ssh server on port ', self.port
         self.lock.release()
 
                 #now keep talking with the client
@@ -80,13 +79,18 @@ class server_plugin(threading.Thread):
             print 'Connected with ' + addr[0] + ':' + str(addr[1])
             self.lock.release()
             #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            client_thread(conn, addr, self.lock)
+            client_thread(conn, addr, self.lock, self.port)
 
         try:
             while True:
                 pass
         except KeyboardInterrupt, IOError:
                 self.tear_down()
+
+    def tear_down(self):
+        print 'ssh ' + str(self.port) + ' closing'
+        self.s.close()
+
 
 class client_thread(paramiko.ServerInterface, threading.Thread):
 
@@ -103,23 +107,17 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
     clientPassword = ''
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, conn, addr, lock):
+    def __init__(self, conn, addr, lock, port):
         threading.Thread.__init__(self)
         self.lock = lock
         client_thread.client = conn
         client_thread.address = addr    # explination of (ip, port) in addr 
         client_thread.clientIP = addr[0]
-        client_thread.PORT = PORT
+        client_thread.PORT = port
         client_thread.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
-        client_thread.time = datetime.datetime.now().time()
+        client_thread.time = time.time()
         self.daemon = True
         self.start()
-
-    def tear_down(self):
-        self.lock.acquire()
-        print 'ssh closing'   
-        self.lock.release()     
-        self.s.close()
 
     def run(self):
         # sets up a socket and begins listening for connection requests
@@ -212,7 +210,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def enable_auth_gssapi(self):
         UseGSSAPI = True
-        GSSAPICleanupCredentials = False
         return UseGSSAPI
 
     def get_allowed_auths(self, username):
@@ -242,7 +239,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':client_thread.clientIP,'Port':PORT.__str__(),'Socket':str(client_thread.socket),
+        dump_string = json.dumps({'Client':{'TYPE':"SSH",'IP':client_thread.clientIP,'Port':client_thread.PORT.__str__(),'Socket':str(client_thread.socket),
                                             'Data':{'Time':client_thread.time.__str__(),
                                                     'Username':client_thread.clientUsername,
                                                     'Passwords':client_thread.clientPassword,

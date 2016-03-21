@@ -23,17 +23,16 @@ import re
 import grp
 import os
 import pwd
-
+import pluginsReader
+import platform
 # sets path for reading in .py files to plugins folder
 path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "plugins")
 sys.path.insert(0, path)
 
 path = path.replace("plugins", "data_files")
-
 text_file = open(path + os.path.sep + "plugins.txt", "r")
 lines = re.split('\n| ', text_file.read())  # regex for new line and blanks
 lock = None
-
 
 def start_plugins():
 
@@ -48,32 +47,42 @@ def start_plugins():
         print(str(e))
 
 
-
 def start():
+    lines = pluginsReader.lineReader()
     global lock
+    plugins = []
     try:
 
         lock = threading.Lock()
-        for i in lines:
-            if i != '' and i[:1] != '#':  # ignore blank lines and comments starting with #
-                plugin = __import__(i)
-                plugin.server_plugin(lock)
+        for line in lines:
+            plug = line.pop(0)          #first index is plugin name
+            plugin = __import__(plug)
+            for port in line:
+                plugins.append(plugin.server_plugin(lock, port))
 
         time.sleep(1)     # wait 1 second so last plugin has time to bind
-        drop_privileges()
+
+        if os.name == 'posix' and platform.dist()[0] == '':
+            drop_privileges_Arch()
+        else:
+            drop_privileges()
 
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         lock.acquire()
         print '\nexiting via KeyboardInterrupt'
+        for plugin in plugins:
+            plugin.tear_down()
         lock.release()
         sys.exit()
     except Exception as e:
         lock.acquire()
         print('ERROR: ' + str(e))
-        sys.exit()
+        for plugin in plugins:
+            plugin.tear_down()
         lock.release()
+        sys.exit()
 
 
 # Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
@@ -101,6 +110,25 @@ def check_root():
 
 
 def drop_privileges(uid_name="nobody", gid_name="nogroup"):
+    if os.getuid() != 0:
+        # We're not root so, like, whatever dude
+        return
+
+    # Get the uid/gid from the name
+    running_uid = pwd.getpwnam(uid_name).pw_uid
+    running_gid = grp.getgrnam(gid_name).gr_gid
+
+    # Remove group privileges
+    os.setgroups([])
+
+    # Try setting the new uid/gid
+    os.setgid(running_gid)
+    os.setuid(running_uid)
+
+    # Ensure a very conservative umask
+    old_umask = os.umask(077)
+
+def drop_privileges_Arch(uid_name="nobody", gid_name="nobody"):
     if os.getuid() != 0:
         # We're not root so, like, whatever dude
         return
