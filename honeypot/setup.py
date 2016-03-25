@@ -2,11 +2,15 @@
 
 from __future__ import with_statement
 
+import os
 import sys
 
 from setuptools import setup, find_packages
 
-from honeypot.honey_loader.version import get_version
+path = os.path.dirname(os.path.realpath(__file__)).replace("honeypot", "honeypot" + os.sep + "honey_loader")
+sys.path.insert(0, path)
+
+import version
 
 
 with open('../README.md') as f:
@@ -25,31 +29,29 @@ The honey pot allows connections to be made to it, and mimics the appropriate pr
 It gathers information from whoever attempts the connection.`.
 """ % (readme)
 
-if sys.version_info[:2] < (2, 6):
-    install_requires=['paramiko>=1.10,<1.13']
-else:
-    install_requires=['paramiko>=1.10,<2.0']
-
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
 
 setup(
         name='SuperHoneyPot',
-        version=get_version('short'),
+        version=version.get_version('short'),
         description='A plugin based honeypot that\'s easy to install and use.',
         long_description=long_description,
         author='Chris Benda, Stephen Chavez, Fred Montoya, Mikhail Batkalin, Brad Gill, William King',
         author_email='stephen.chavez12@gmail.com',
         url='https://github.com/redragonx/SuperHoneyPot',
         packages=find_packages(),
-        test_suite='',
-        tests_require=[],
-        install_requires=install_requires,
+        include_package_data = True,
+        test_suite='nose.collector',
+        tests_require=['nose'],
+        install_requires=requirements,
         entry_points={
             'console_scripts': [
-                'fab = fabric.main:main',
+                'honeypot = honeypot.honey_loader.loader:start_plugins'
             ]
         },
         classifiers=[
-            'Development Status :: 5 - Production/Stable',
+            'Development Status :: 2 - Beta',
             'Environment :: Console',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
@@ -61,12 +63,7 @@ setup(
             'Programming Language :: Python :: 2.5',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
-            'Topic :: Software Development',
-            'Topic :: Software Development :: Build Tools',
-            'Topic :: Software Development :: Libraries',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            'Topic :: System :: Clustering',
-            'Topic :: System :: Software Distribution',
             'Topic :: System :: Systems Administration',
+            'Topic :: Networking :: Network Sniffer'
         ],
 )

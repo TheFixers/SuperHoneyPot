@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 import httplib
 import os
 import re
@@ -29,18 +31,22 @@ TestCase4: test_mulithreads: Checks to see if the server can accept multiple con
 class GeneralServerTest(unittest.TestCase):
 
     # Checks to see if the server will start and accept a valid connection
+    @unittest.expectedFailure
     def test_run(self):
         self.assertTrue(False)
 
     # Checks to see if the server will shutdown properly
+    @unittest.expectedFailure
     def test_teardown(self):
         self.assertTrue(False)
 
     # makes sure the server doesn't accept invalid port
+    @unittest.expectedFailure
     def test_invalidPort(self):
         self.assertTrue(False)
 
     # Makes sure the server can accept multiple request at once
+    @unittest.expectedFailure
     def test_multithreads(self):
         self.assertTrue(False)
 '''
@@ -50,6 +56,7 @@ TestCase1: test_communication:
 
 '''
 class PluginSpeficTest(unittest.TestCase):
+    @unittest.expectedFailure
     def test_communication(self):
         self.assertTrue(False)
 '''
@@ -60,11 +67,16 @@ TestCase2: test_buffer_overflow:
 TestCase3: test_null:
 '''
 class CommonBreakInAttempts(unittest.TestCase):
+    @unittest.expectedFailure
     def test_sql_injection(self):
         self.assertTrue(False)
+    @unittest.expectedFailure
     def test_buffer_overflow(self):
         self.assertTrue(False)
+    @unittest.expectedFailure
     def test_null(self):
         self.assertTrue(False)
 
 
+if __name__ == '__main__':
+    unittest.main()

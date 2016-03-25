@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
     This file is part of SuperHoneyPot.
 
@@ -10,59 +12,124 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    
+
     You should have received a copy of the GNU Affero General Public License
-    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>. 
+    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import json
+import time
 import threading
-import socket
+
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+import os
 import sys
+import ssl
 
-HOST = ''
-PORT = 443
 
-clients = []
+path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
+sys.path.insert(0, path)
+
+
+private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugins", "data_files"))
+host_key = private_key_filepath + os.path.sep + "ssl.pem"
+
+import honeypot_db_interface
 
 
 class server_plugin(threading.Thread):
-    def __init__(self, lock):
+
+    interface = honeypot_db_interface.honeypot_database_interface()
+
+    def __init__(self, lock, port):
         threading.Thread.__init__(self)
+        self.port = int(float(port))
         self.lock = lock
         self.daemon = True
         self.start()
 
     def run(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # Bind socket to local host and port
+        # Create a web server and define the handler to manage the
+        # incoming request
+
         try:
-            s.bind((HOST, PORT))
-        except socket.error as msg:
-            print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-            sys.exit()
+            self.server = HTTPServer(('', self.port), web_server_handler)
+            # self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.server.socket = ssl.wrap_socket (self.server.socket, certfile=host_key, server_side=True)
+            self.lock.acquire()
+            print 'Started httpserver on port ', self.port
+            self.lock.release()
+            # Wait forever for incoming htto requests
+            self.server.serve_forever()
 
-        # Start listening on socket
-        s.listen(4)
-        self.lock.acquire()
-        print 'Started httpsserver on port ', PORT
-        self.lock.release()
+        except KeyboardInterrupt, IOError:
+            self.tear_down()
 
-        # now keep talking with the client
+    def tear_down(self):
+        print 'HTTP '+str(self.port)+' closing'
+        self.server.socket.close()
+        self.server.shutdown()
+
+
+class web_server_handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_error(404, 'File Not Found: %s' % self.path)
+
+        client_url = self.path
+        client_ip = self.client_address  # ip and port
+        request_time = time.time()
+
+        json_data = {'Client': {'TYPE':"HTTPS",'IP': client_ip[0],'Port':str(self.server.server_address[1]),'Socket':str(client_ip[1]),
+                                'Data':{'Time':request_time.__str__(),'clientURL':client_url}}}
+
+        # export to db or something here
+        data = json.dumps(json_data)
+        print('HTTPS Attack: ' + request_time.__str__() + ' on port ' + str(self.server.server_address[1]) + '.')
+        server_plugin.interface.receive_data(data)
+
+
+
+        # try:
+        #     #Check the file extension required and
+        #     #set the right mime type
+        #
+        #     sendReply = False
+        #     if self.path.endswith(".html"):
+        #         mimetype='text/html'
+        #         sendReply = True
+        #     if self.path.endswith(".jpg"):
+        #         mimetype='image/jpg'
+        #         sendReply = True
+        #     if self.path.endswith(".gif"):
+        #         mimetype='image/gif'
+        #         sendReply = True
+        #     if self.path.endswith(".js"):
+        #         mimetype='application/javascript'
+        #         sendReply = True
+        #     if self.path.endswith(".css"):
+        #         mimetype='text/css'
+        #         sendReply = True
+        #
+        #     if sendReply == True:
+        #         #Open the static file requested and send it
+        #         f = open(curdir + sep + self.path)
+        #         self.send_response(200)
+        #         self.send_header('Content-type',mimetype)
+        #         self.end_headers()
+        #         self.wfile.write(f.read())
+        #         f.close()
+        #     return
+
+        # except IOError:
+        # self.send_error(404,'File Not Found: %s' % self.path)
+
+
+if __name__ == '__main__':
+    try:
+        lock = threading.Lock()
+        server_plugin(lock)
         while True:
-            # wait to accept a connection - blocking call
-            conn, addr = s.accept()
-            print 'Connected with ' + addr[0] + ':' + str(addr[1])
-
-            # start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
-            start_new_thread(clientthread, (conn,))
-
-        s.close()
-
-
-# Function for handling connections. This will be used to create threads
-def clientthread(conn):
-    line = ''
-    # Sending message to connected client
-    conn.send('Welcome to the server. Bye.\n')  # send only takes string
-    conn.close()
+            pass
+    except KeyboardInterrupt:
+        print '\nexiting via KeyboardInterrupt'

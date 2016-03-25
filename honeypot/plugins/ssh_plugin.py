@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
     This file is part of SuperHoneyPot.
 
@@ -27,6 +29,7 @@ from binascii import hexlify
 import paramiko
 from paramiko.py3compat import b, u
 import os
+import time
 
 
 path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
@@ -34,18 +37,67 @@ sys.path.insert(0, path)
 
 import honeypot_db_interface
 
-# setup logging
-paramiko.util.log_to_file('demo_server.log')
+private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugins", "data_files"))
+host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privateSSHKey.key')
 
-currentFilePath = os.path.dirname(os.path.realpath(__file__))
-host_key = paramiko.RSAKey(filename=currentFilePath + os.path.sep + 'randomKey.key')
+HOST = ''
+
+class server_plugin(threading.Thread):
+
+    def __init__(self, lock, port):
+        threading.Thread.__init__(self)
+        self.port = int(float(port))
+        self.lock = lock
+        self.daemon = True
+        self.event = threading.Event()
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.start()
+
+    def run(self):
+
+        #Bind socket to local host and port
+        try:
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.s.bind((HOST, self.port))
+        except socket.error as msg:
+            self.lock.acquire()
+            print "ERROR: " + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            self.lock.release()
+            sys.exit()
+
+        #Start listening on socket
+        self.s.listen(4)
+        self.lock.acquire()
+        print 'Started ssh server on port ', self.port
+        self.lock.release()
+
+                #now keep talking with the client
+        while 1:
+            #wait to accept a connection - blocking call
+            conn, addr = self.s.accept()  
+            self.lock.acquire()
+            print 'Connected with ' + addr[0] + ':' + str(addr[1])
+            self.lock.release()
+            #start new thread takes 1st argument as a function name to be run, second is the tuple of arguments to the function.
+            client_thread(conn, addr, self.lock, self.port)
+
+        try:
+            while True:
+                pass
+        except KeyboardInterrupt, IOError:
+                self.tear_down()
+
+    def tear_down(self):
+        print 'ssh ' + str(self.port) + ' closing'
+        self.s.close()
 
 
-class server_plugin(paramiko.ServerInterface, threading.Thread):
-    PORT = 22
-    sshSocket = None
+class client_thread(paramiko.ServerInterface, threading.Thread):
+
     client = None
+    PORT = None
     address = None
+    socket = None
     time = None
     server = None
     channel = None
@@ -55,49 +107,24 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     clientPassword = ''
     interface = honeypot_db_interface.honeypot_database_interface()
 
-    def __init__(self, lock):
+    def __init__(self, conn, addr, lock, port):
         threading.Thread.__init__(self)
         self.lock = lock
+        client_thread.client = conn
+        client_thread.address = addr    # explination of (ip, port) in addr 
+        client_thread.clientIP = addr[0]
+        client_thread.PORT = port
+        client_thread.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
+        client_thread.time = time.time()
         self.daemon = True
-        self.event = threading.Event()
         self.start()
 
-    def get_ssh_socket(self):
-        try:
-            ssh_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ssh_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            ssh_socket.bind(('', server_plugin.PORT))
-            return ssh_socket
-        except Exception as e:
-            print('Bind failure: ' + str(e))
-
-    def accept(self):
-        try:
-            ssh_socket = self.get_ssh_socket()
-            ssh_socket.listen(100)
-            self.lock.acquire()
-            print 'Started ssh on port 22'
-            self.lock.release()
-            ## accepts a connection request from the client and records the client info
-            client, address = ssh_socket.accept()
-            server_plugin.time = datetime.datetime.now().time()
-            server_plugin.clientIP = address[0]
-            return client, address, server_plugin.time
-        except Exception as e:
-            print('Connection failure: ' + str(e))
-
     def run(self):
-        self.lock.acquire()
-        #print('SSH LOADED')
-        self.lock.release()
-        ## sets up a socket and begins listening for connection requests
+        # sets up a socket and begins listening for connection requests
         try:
-            client, address, time = self.accept()
-            self.lock.acquire()
-            self.lock.release()
-            #print('ssh connection attempting...')
+
             # creates the ssh transport over the socket
-            t = paramiko.Transport(client, gss_kex=False)
+            t = paramiko.Transport(client_thread.client, gss_kex=False)
             t.set_gss_host(socket.getfqdn(""))
             try:
                 t.load_server_moduli()
@@ -105,8 +132,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
             t.add_server_key(host_key)  # sets the server RSA key
-            server = server_plugin(self.lock)
-            #print('complete. Starting server')
+            server = self
+
             try:
                 # starts a new ssh server session and opens a thread for
                 # protocol negotiation.
@@ -117,7 +144,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
             # Channel will always be none because the client cannot
             # authenticate to request a channel.
             if channel is None:
-                #print('*** No channel.')
                 pass
         except Exception as e:
             print('Failure to complete connection: ' + str(e))
@@ -128,8 +154,7 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
         self.lock.acquire()
         # Displays, sends, then clears collected data fields.
         self.display_output()
-        self.send_output()
-        self.clear_vars()
+        self.send_output() 
         self.lock.release()
 
     def check_channel_request(self, kind, chanid):
@@ -140,11 +165,11 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def check_auth_password(self, username, password):
         # Performs username and password authentication. Captures username
         # and all password attempts, including empty strings.
-        server_plugin.clientUsername = username
+        client_thread.clientUsername = username
         if password == '':
-            server_plugin.clientPassword += '<null> '
+            client_thread.clientPassword += '<null> '
         else:
-            server_plugin.clientPassword += (password + ' ')
+            client_thread.clientPassword += (password + ' ')
         if (username == 'robey') and (password == 'foo'):
             return paramiko.AUTH_FAILED  # (default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
@@ -152,8 +177,8 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
     def check_auth_publickey(self, username, key):
         # Allows the user to submit a key for authentication,
         # if applicable, then captures the key
-        server_plugin.pulledKey = u(hexlify(key.get_fingerprint()))
-        #print('Auth attempt with key: ' + server_plugin.pulledKey)
+        client_thread.pulledKey = u(hexlify(key.get_fingerprint()))
+        #print('Auth attempt with key: ' + client_thread.pulledKey)
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_with_mic(self, username,
@@ -185,7 +210,6 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def enable_auth_gssapi(self):
         UseGSSAPI = True
-        GSSAPICleanupCredentials = False
         return UseGSSAPI
 
     def get_allowed_auths(self, username):
@@ -201,37 +225,29 @@ class server_plugin(paramiko.ServerInterface, threading.Thread):
 
     def display_output(self):
         # Server-side display string
-        print('Attack: ' + server_plugin.time.__str__() + ' on port ' + server_plugin.PORT.__str__() + '.')
+        print('SSH Attack: ' + client_thread.time.__str__() + ' from ' + client_thread.clientIP + ' on port ' + client_thread.PORT.__str__() + '.')
         '''
         # Prints out all captured data from the attacker
-        print('Attack time: ' + server_plugin.time.__str__())
-        print('Attacker key: ' + server_plugin.pulledKey)
-        print('Attacker IP:  ' + server_plugin.clientIP)
-        print('Port of incoming attack: ' + server_plugin.PORT.__str__())
-        print('Submitted username: ' + server_plugin.clientUsername)
-        print('Submitted password: ' + server_plugin.clientPassword)
+        print('Attack time: ' + client_thread.time.__str__())
+        print('Attacker key: ' + client_thread.pulledKey)
+        print('Attacker IP:  ' + client_thread.clientIP)
+        print('Port of incoming attack: ' + client_thread.PORT.__str__())
+        print('Submitted username: ' + client_thread.clientUsername)
+        print('Submitted password: ' + client_thread.clientPassword)
         '''
         return
 
     def send_output(self):
         # creates an output string to be sent to the database (via interface)
-        dump_string = json.dumps({'Client':{'IP':server_plugin.clientIP,'Port':server_plugin.PORT.__str__(),
-                                            'Data':{'Time':server_plugin.time.__str__(),
-                                                    'Username':server_plugin.clientUsername,
-                                                    'Passwords':server_plugin.clientPassword,
-                                                    'Key':server_plugin.pulledKey}}})
+        dump_string = json.dumps({'Client':{'TYPE':"SSH",'IP':client_thread.clientIP,'Port':client_thread.PORT.__str__(),'Socket':str(client_thread.socket),
+                                            'Data':{'Time':client_thread.time.__str__(),
+                                                    'Username':client_thread.clientUsername,
+                                                    'Passwords':client_thread.clientPassword,
+                                                    'Key':client_thread.pulledKey}}})
         #print(dump_string)
-        server_plugin.interface.receive_data(dump_string)
+        client_thread.interface.receive_data(dump_string)
         return
 
-    def clear_vars(self):
-        # clears out the variables in preparation for a new connection attempt
-        server_plugin.time = None
-        server_plugin.clientIP = None
-        server_plugin.pulledKey = None
-        server_plugin.clientUsername = ''
-        server_plugin.clientPassword = ''
-        return
 
 
 if __name__ == '__main__':
@@ -239,6 +255,6 @@ if __name__ == '__main__':
         lock = threading.Lock()
         server_plugin(lock)
         while True:
-            pass
+            time.sleep(1)
     except KeyboardInterrupt:
         print '\nexiting via KeyboardInterrupt'

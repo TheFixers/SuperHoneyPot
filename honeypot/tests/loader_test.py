@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 import httplib
 import os
 import re
@@ -31,9 +33,9 @@ class TestLoader(unittest.TestCase):
     # First test is to see if good inputs will run and not throw any errors.
     # expect no Exception to pass
     def test_start_plugins(self):
-        dummy_file = open(dummy_plugins_path, "w")
-        dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nssh_plugin\n")
-        dummy_file.close()
+        self.dummy_file = open(dummy_plugins_path, "w")
+        self.dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nssh_plugin\n")
+        self.dummy_file.close()
         try:
             text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
@@ -118,9 +120,9 @@ class TestLoader(unittest.TestCase):
     # If bad data is in the file except that all plugins will still run or any plugin that is started to be
     # shutdown.
     def test_start_plugins_baddatainfile(self):
-        dummy_file = open(dummy_plugins_path, "w")
-        dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nbad\nssh_plugin\n")
-        dummy_file.close()
+        self.dummy_file = open(dummy_plugins_path, "w")
+        self.dummy_file.write("http_reader\ntelnet_reader\nhttps_reader\nbad\nssh_plugin\n")
+        self.dummy_file.close()
 
         start_plugins_exited = False
         try:
@@ -159,22 +161,21 @@ class TestLoader(unittest.TestCase):
     # This test if a blank file is used for inputs
     # Might choose to use warning on empty file
     def test_start_plugins_blankfile(self):
-        dummy_file = open(dummy_plugins_path, "w")
+        self.dummy_file = open(dummy_plugins_path, "w")
         # dummy_file.seek(99999) Optional test is to create a larger file with no data
         # dummy_file.write("\0")
-        dummy_file.close()
+        self.dummy_file.close()
         try:
             text_file = open(dummy_plugins_path, "r")
             loader.lines = re.split('\n| ',text_file.read()) #regex for new line and blanks
 
             loader.start_plugins
-
+            text_file.close()
         except Exception as e:
             self.fail("Error has accorded: " + e)
         finally:
+            self.dummy_file.close()
             os.remove(dummy_plugins_path)       # added to remove dummy_plugins.txt at the end of all tests
-
-
 
 if __name__ == '__main__':
     unittest.main()
