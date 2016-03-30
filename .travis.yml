@@ -12,5 +12,5 @@ install:
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
 script:
     - sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
-    - sudo nosetests honeypot/tests/https_reader_test.py honeypot/tests/http_reader_test.py 
+    - sudo nosetests honeypot/tests/https_reader_test.py	honeypot/tests/http_reader_test.py 
 	
