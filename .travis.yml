@@ -11,7 +11,6 @@ install:
   - pip install -e honeypot
   # Deal with issue on Travis builders re: multiprocessing.Queue :(
   - "sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm"
-script:
+script: cd $honeypot/tests/
     - sudo sed -i -e 's/^Defaults\tsecure_path.*$//' /etc/sudoers
-	- cd honeypot/tests/
-    - sudo nosetests
+    - sudo nosetests honeypot/tests/https_reader_test.py
