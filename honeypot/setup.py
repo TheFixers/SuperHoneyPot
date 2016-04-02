@@ -7,13 +7,16 @@ import sys
 
 from setuptools import setup, find_packages
 
-path = os.path.dirname(os.path.realpath(__file__)).replace("honeypot", "honeypot" + os.sep + "honey_loader")
+
+
+path = os.path.dirname(os.path.realpath(__file__))+ os.sep + "honey_loader"
 sys.path.insert(0, path)
 
 import version
 
+path = os.path.dirname(os.path.realpath(__file__)).replace('honeypot','')
 
-with open('../README.md') as f:
+with open(path + 'README.md') as f:
     readme = f.read()
 
 long_description = """
@@ -41,13 +44,16 @@ setup(
         author_email='stephen.chavez12@gmail.com',
         url='https://github.com/redragonx/SuperHoneyPot',
         packages=find_packages(),
+        package_data={
+            'data_files':['*.txt','*.pem','*.key']
+            },
         include_package_data = True,
         test_suite='nose.collector',
         tests_require=['nose'],
         install_requires=requirements,
         entry_points={
             'console_scripts': [
-                'honeypot = honeypot.honey_loader.loader:start_plugins'
+                'honeypot = honey_loader.loader:start_plugins'
             ]
         },
         classifiers=[
