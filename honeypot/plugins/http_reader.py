@@ -31,6 +31,7 @@ sys.path.insert(0, path)
 
 import honeypot_db_interface
 
+ERROR = 'Error Source:: HTTP Plugin. '
 
 class server_plugin(threading.Thread):
 
@@ -52,7 +53,7 @@ class server_plugin(threading.Thread):
             self.server = HTTPServer(('', self.port), web_server_handler)
             self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.lock.acquire()
-            print 'Started httpserver on port ', self.port
+            print 'Started http server on port ', self.port
             self.lock.release()
             # Wait forever for incoming htto requests
             self.server.serve_forever()
@@ -60,10 +61,19 @@ class server_plugin(threading.Thread):
         except KeyboardInterrupt, IOError:
             self.tear_down()
 
+        except socket.error as msg:
+            self.lock.acquire()
+            print ERROR + 'Error Number: ' + str(msg[0])
+            print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
+            self.lock.release()
+            sys.exit()
+
+
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
-        self.server.socket.close()
+        # self.server.socket.close()
         self.server.shutdown()
+        self.server.server_close()
 
 
 class web_server_handler(BaseHTTPRequestHandler):

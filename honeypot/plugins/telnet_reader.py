@@ -36,7 +36,7 @@ import honeypot_db_interface
 
  
 HOST = ''
-ERROR = 'error from Telnet plugin: '
+ERROR = 'Error Source:: Telnet Plugin. '
 
 class server_plugin(threading.Thread):
 
@@ -56,7 +56,8 @@ class server_plugin(threading.Thread):
             self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
-            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            print ERROR + 'Error Number: ' + str(msg[0])
+            print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
 
@@ -124,12 +125,15 @@ class client_thread(threading.Thread):
 
             #Receiving from client
             data = self.conn.recv(1024)
-            print repr(data)
-            if "\r\n" in data or '\r\x00' in data:
+            if '\xff\xf3\xff\xfd\x06' in data :
+                data.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
+            elif "\r\n" in data or '\r\x00' in data :
+
                 datarecieved = datarecieved + data
                 datarecieved = datarecieved.replace('\r\n','')
                 datarecieved = datarecieved.replace('\r\x00','')
-                # print repr(datarecieved)
+                datarecieved = datarecieved.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
+
                 if i == 0:
                     if len(datarecieved) > 128:
                         self.username = datarecieved[0:127]
@@ -154,9 +158,11 @@ class client_thread(threading.Thread):
                         self.data = datarecieved
                     else:
                         self.data = self.data +" || "+ datarecieved
+                    print 'here'
                     if '\r\x00' in data:
                         self.conn.send('\nInvalid command\n')
                     else:
+                        print 'here2'
                         self.conn.send('Invalid command\n')
                     if linux:
                         self.conn.send('>> ')
@@ -169,7 +175,7 @@ class client_thread(threading.Thread):
                 datarecieved = datarecieved + data
 
             # these two are ctrl+c in linux and in windows. Easier way to end program. 
-            if i == 7 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+            if i == 12 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
                 self.lock.acquire()
                 print self.ip + ':' + str(self.socket) + ': ' + 'Connection terminated.'
                 self.lock.release()
@@ -200,7 +206,7 @@ class client_thread(threading.Thread):
 if __name__ == '__main__':
     try:
         lock = threading.Lock()
-        server_plugin(lock)
+        server_plugin(lock, 23)
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
