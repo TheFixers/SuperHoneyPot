@@ -36,7 +36,7 @@ import honeypot_db_interface
 
  
 HOST = ''
-ERROR = 'error from Telnet plugin: '
+ERROR = 'Error Source:: Telnet Plugin. '
 
 class server_plugin(threading.Thread):
 
@@ -56,7 +56,8 @@ class server_plugin(threading.Thread):
             self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
-            print ERROR + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            print ERROR + 'Error Number: ' + str(msg[0])
+            print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
 

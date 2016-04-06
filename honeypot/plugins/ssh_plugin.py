@@ -41,6 +41,7 @@ private_key_filepath = os.path.dirname(os.path.realpath(__file__).replace("plugi
 host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privateSSHKey.key')
 
 HOST = ''
+ERROR = 'Error Source:: SSH Plugin. '
 
 class server_plugin(threading.Thread):
 
@@ -61,7 +62,8 @@ class server_plugin(threading.Thread):
             self.s.bind((HOST, self.port))
         except socket.error as msg:
             self.lock.acquire()
-            print "ERROR: " + 'Bind failed. ' + str(msg[0]) + ' Message ' + msg[1]
+            print ERROR + 'Error Number: ' + str(msg[0])
+            print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
 

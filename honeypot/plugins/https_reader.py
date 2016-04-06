@@ -25,7 +25,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import os
 import sys
 import ssl
-
+import socket
 
 path = os.path.dirname(os.path.realpath(__file__)).replace("plugins", "db_interface")
 sys.path.insert(0, path)
@@ -36,6 +36,7 @@ host_key = private_key_filepath + os.path.sep + "ssl.pem"
 
 import honeypot_db_interface
 
+ERROR = 'Error Source:: HTTPS Plugin. '
 
 class server_plugin(threading.Thread):
 
@@ -58,13 +59,20 @@ class server_plugin(threading.Thread):
             # self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.server.socket = ssl.wrap_socket (self.server.socket, certfile=host_key, server_side=True)
             self.lock.acquire()
-            print 'Started httpserver on port ', self.port
+            print 'Started https server on port ', self.port
             self.lock.release()
             # Wait forever for incoming htto requests
             self.server.serve_forever()
 
         except KeyboardInterrupt, IOError:
             self.tear_down()
+
+        except socket.error as msg:
+            self.lock.acquire()
+            print ERROR + 'Error Number: ' + str(msg[0])
+            print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
+            self.lock.release()
+            sys.exit()
 
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
