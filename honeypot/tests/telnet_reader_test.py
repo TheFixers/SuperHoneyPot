@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-
+# -*- coding:  UTF-8 -*-
 import os
 import sys
 import unittest
@@ -8,7 +8,6 @@ import threading
 import thread
 import time
 
-# would be used for integration tests
 path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "plugins")
 sys.path.insert(0, path)
 import telnet_reader
@@ -195,6 +194,66 @@ class GeneralTelnetReaderTest(unittest.TestCase):
     #         self.assertTrue(connection)
     #         # telnet.server.close()
     #         time.sleep(1)
+
+    def test_nonacsii(self):
+
+        time.sleep(1)
+        try:
+            lock = threading.Lock()
+            self.telnet = telnet_reader.server_plugin(lock, PORT)
+        except Exception as e:
+            self.fail("Server Failed to Start")
+
+        time.sleep(1)
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+
+            self.conn.recv(1024)
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('café \r\n')
+            msg = self.conn.recv(1024)
+            self.conn.send('ñóǹ äŝçíì 汉语/漢語  华语/華語 Huáyǔ; 中文 Zhōngwén 漢字仮名交じり文 Lech Wałęsa æøå \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send(
+                '\x00 \x01 \x02 \x04 \x05 \x06 \x07 \x08 \x09 \x0A \x0B \x0C \x0D \x0E \x0F'
+                #'\x10 \x13'
+                ' \x11 \x12 '
+                # '\x14 '
+                # '\x15 '
+                '\x16 '
+                # '\x17 '
+                '\x18 '
+                # '\x19 '
+                '\x1A '
+                # '\x1B '
+                '\x1C '
+                '\x1D '
+                # '\x1E '
+                '\x1F'
+                '\x20 \x21 \x22 \x23 \x24 \x25 \x26 \x27 \x28 \x29 \x2A \x2B \x2C \x2D \x2E \x2F'
+                '  \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('\x03')
+            msg = self.conn.recv(1024)
+            print msg
+            self.telnet.s.close()
+            connection = True
+        except Exception as e:
+            print e
+            connection = False
+        finally:
+            self.assertTrue(connection)
+            self.conn.close()
+            time.sleep(1)
+
 
 
 '''
