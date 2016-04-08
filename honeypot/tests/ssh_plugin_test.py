@@ -1,5 +1,4 @@
 #!/usr/bin/python2
-# -*- coding:  UTF-8 -*-
 
 import os
 import sys
@@ -195,81 +194,6 @@ class GeneralServerTest(unittest.TestCase):
         finally:
             self.assertTrue(connection)
             time.sleep(1)
-
-    def test_nonacsii(self):
-        try:
-            lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock, PORT)
-        except Exception as e:
-            print("Server Failed to Start")
-        time.sleep(1)
-        try:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(
-                paramiko.AutoAddPolicy())
-            ssh.connect('localhost', username='ñóǹ äŝçíì 汉语/漢語  华语/華語 Huáyǔ; 中文 Zhōngwén 漢字仮名交じり文 Lech Wałęsa æøå',
-                        password='/x03')
-
-            connection = True
-        except Exception as e:
-            if e.message == 'Authentication failed.':
-                connection = True
-            else:
-                print e
-                connection = False
-        finally:
-            print(connection)
-            ssh.close()
-            time.sleep(1)
-
-    def test_buffoverflower(self):
-
-        buff = '\x41'* 16793598
-
-        try:
-            lock = threading.Lock()
-            sshServer = ssh_plugin.server_plugin(lock, PORT)
-        except Exception as e:
-            print("Server Failed to Start")
-        time.sleep(1)
-        try:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(
-                paramiko.AutoAddPolicy())
-            ssh.connect('localhost', username='' + buff,
-                        password=''+buff+buff)
-
-            connection = True
-
-        except Exception as e:
-            if e.message == 'Authentication failed.':
-                connection = True
-            else:
-                print e
-                connection = False
-        try:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(
-                paramiko.AutoAddPolicy())
-            ssh.connect('localhost', username='user',
-                        password='pass')
-
-        except Exception as e:
-            if e.message == 'Authentication failed.':
-                connection = True
-            else:
-                print e
-                connection = False
-
-        finally:
-            print(connection)
-            ssh.close()
-            time.sleep(1)
-
-
-
-
-
 
 
     def shell_shock_test (self):
