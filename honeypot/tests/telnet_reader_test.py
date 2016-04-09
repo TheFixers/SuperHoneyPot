@@ -181,7 +181,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
         finally:
             telnet.s.close()
             self.assertTrue(connection)
-            telnet.server.close()
+            telnet.s.close()
             time.sleep(1)
 
     # see if the sever can handle nonascii character and ctl+[char]
