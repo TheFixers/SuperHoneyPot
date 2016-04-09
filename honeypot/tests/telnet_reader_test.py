@@ -186,14 +186,14 @@ class GeneralTelnetReaderTest(unittest.TestCase):
 
     # see if the sever can handle nonascii character and ctl+[char]
     def test_nonacsii(self):
-        time.sleep(1)
+        time.sleep(2)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
-        time.sleep(1)
+        time.sleep(2)
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
@@ -222,12 +222,13 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             '''
             self.conn.send('\x03')
             self.conn.recv(1024)
-            self.telnet.s.close()
+
             connection = True
         except Exception as e:
             print e
             connection = False
         finally:
+            self.telnet.s.close()
             self.assertTrue(connection)
             self.conn.close()
             time.sleep(1)
