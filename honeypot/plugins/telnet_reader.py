@@ -60,7 +60,6 @@ class server_plugin(threading.Thread):
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
-            #raise socket.error('Socket error occured.')
 
         
         #Start listening on socket

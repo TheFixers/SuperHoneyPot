@@ -61,7 +61,7 @@ class server_plugin(threading.Thread):
             self.lock.acquire()
             print 'Started https server on port ', self.port
             self.lock.release()
-            # Wait forever for incoming htto requests
+            # Wait forever for incoming https requests
             self.server.serve_forever()
 
         except KeyboardInterrupt, IOError:
@@ -73,13 +73,11 @@ class server_plugin(threading.Thread):
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
-            #raise socket.error('Socket error occured.')
 
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
         
         try:
-            # self.server.socket.close()
             self.server.shutdown()
             self.server.server_close()
         except AttributeError:
