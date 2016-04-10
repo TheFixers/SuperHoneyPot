@@ -73,12 +73,18 @@ class server_plugin(threading.Thread):
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
+            #raise socket.error('Socket error occured.')
 
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
-        # self.server.socket.close()
-        self.server.shutdown()
-        self.server.server_close()
+        
+        try:
+            # self.server.socket.close()
+            self.server.shutdown()
+            self.server.server_close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 
 class web_server_handler(BaseHTTPRequestHandler):

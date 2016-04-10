@@ -66,6 +66,7 @@ class server_plugin(threading.Thread):
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
             sys.exit()
+            #raise socket.error('Socket error occured.')
 
         #Start listening on socket
         self.s.listen(4)
@@ -91,7 +92,12 @@ class server_plugin(threading.Thread):
 
     def tear_down(self):
         print 'ssh ' + str(self.port) + ' closing'
-        self.s.close()
+
+        try:
+            self.s.close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 
 class client_thread(paramiko.ServerInterface, threading.Thread):
