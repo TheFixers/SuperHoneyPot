@@ -134,6 +134,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             time.sleep(1)
     # test invalidports make sure the plus or minus one port is not activated by this plugin
     def test_invalidport(self):
+        time.sleep(1)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
@@ -155,32 +156,33 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.assertFalse(connection)
             self.telnet.s.close()
             conn.close()
+            time.sleep(1)
 
     #Test to make sure that server is listening on multiple threads
-    def test_mulithreads(self):
-        time.sleep(1)
-        try:
-             lock = threading.Lock()
-             self.telnet = telnet_reader.server_plugin(lock, PORT)
-        except Exception as e:
-            self.fail("Server Failed to Start")
-        time.sleep(1)
-        try:
-            threads = []
-            for num in range(0, 4):
-                thread = telent_client()
-                thread.start()
-                threads.append(thread)
-            for thread in threads:
-                thread.join()
-            connection = True
-        except Exception as e:
-            print e
-            connection = False
-        finally:
-            self.telnet.s.close()
-            self.assertTrue(connection)
-            time.sleep(1)
+    # def test_mulithreads(self):
+    #     time.sleep(1)
+    #     try:
+    #          lock = threading.Lock()
+    #          self.telnet = telnet_reader.server_plugin(lock, PORT)
+    #     except Exception as e:
+    #         self.fail("Server Failed to Start")
+    #     time.sleep(1)
+    #     try:
+    #         threads = []
+    #         for num in range(0, 4):
+    #             thread = telent_client()
+    #             thread.start()
+    #             threads.append(thread)
+    #         for thread in threads:
+    #             thread.join()
+    #         connection = True
+    #     except Exception as e:
+    #         print e
+    #         connection = False
+    #     finally:
+    #         self.telnet.s.close()
+    #         self.assertTrue(connection)
+    #         time.sleep(1)
 
     # see if the sever can handle nonascii character and ctl+[char]
     def test_nonacsii(self):
@@ -194,6 +196,10 @@ class GeneralTelnetReaderTest(unittest.TestCase):
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
+        except Exception as e:
+            print e
+            self.fail("Failed to make a connection")
+        try:
             self.conn.recv(1024)
             self.conn.sendall('Username \r\n')
             self.conn.recv(1024)
@@ -218,13 +224,13 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             '''
             self.conn.send('\x03')
             self.conn.recv(1024)
-            connection = True
+            nonAscii = True
         except Exception as e:
             print e
-            connection = False
+            nonAscii = False
         finally:
             self.telnet.s.close()
-            self.assertTrue(connection)
+            self.assertTrue(nonAscii)
             self.conn.close()
             time.sleep(1)
 
