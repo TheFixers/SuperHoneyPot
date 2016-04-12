@@ -167,7 +167,142 @@ class GeneralTelnetReaderTest(unittest.TestCase):
         finally:
             self.assertFalse(connection)
             conn.close()
-    #
+    #test if the client tries to overflow the buffer
+    def test_bufferoverflow(self):
+        buff = '\x41'* 16793598
+        bufferOverflow = False
+        time.sleep(1)
+        try:
+            lock = threading.Lock()
+            self.telnet = telnet_reader.server_plugin(lock, PORT)
+        except Exception as e:
+            self.fail("Server Failed to Start")
+        time.sleep(1)
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            self.conn.settimeout(30.0)
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            start = time.time()
+            self.conn.sendall('' + buff + buff + ' \r\n')
+            self.conn.sendall('\r\n')
+            msg = self.conn.recv(1024)
+            if msg != 'Invalid command\n>> ':
+                bufferOverflow = True
+            else:
+                bufferOverflow = False
+            self.conn.send('\x03')
+            self.conn.recv(1024)
+            self.conn.settimeout(30.0)
+            self.telnet.s.close()
+            connection = True
+        except Exception as e:
+            if e.message == 'timed out':
+                self.fail('Client had to timeout: 30 seconds')
+            print e
+            connection = False
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            self.conn.recv(1024)
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Command test \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('\x03')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.telnet.s.close()
+            connection = True
+        except Exception as e:
+            print e
+            connection = False
+        finally:
+            self.assertTrue(connection & bufferOverflow)
+            self.conn.close()
+            time.sleep(1)
+
+
+    ##test if the client tries to overflow the buffer
+    def test_bufferoverflow(self):
+        buff = '\x41'* 16793598
+        bufferOverflow = False
+        time.sleep(1)
+        try:
+            lock = threading.Lock()
+            self.telnet = telnet_reader.server_plugin(lock, PORT)
+        except Exception as e:
+            self.fail("Server Failed to Start")
+        time.sleep(1)
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            self.conn.settimeout(5.0)
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            start = time.time()
+            self.conn.sendall('' + buff + buff + ' \r\n')
+            self.conn.sendall('\r\n')
+            msg = self.conn.recv(1024)
+            if msg != 'Invalid command\n>> ':
+                bufferOverflow = True
+            else:
+                bufferOverflow = False
+            self.conn.send('\x03')
+            self.conn.recv(1024)
+            self.conn.settimeout(30.0)
+            self.telnet.s.close()
+            connection = True
+        except Exception as e:
+            if e.message == 'timed out':
+                self.fail('Client had to timeout: 30 seconds')
+            print e
+            connection = False
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            self.conn.recv(1024)
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('Command test \r\n')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.conn.send('\x03')
+            msg = self.conn.recv(1024)
+            # print msg
+            self.telnet.s.close()
+            connection = True
+        except Exception as e:
+            print e
+            connection = False
+        finally:
+            self.assertTrue(connection & bufferOverflow)
+            self.conn.close()
+            time.sleep(1)
+
+
     #Test to make sure that server is listening on multiple threads
     #Ignore error that it has to many threads running.
     # def test_mulithreads(self):
