@@ -6,6 +6,7 @@ import unittest
 import socket
 import threading
 import thread
+import time
 
 # would be used for integration tests
 path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "plugins")
@@ -30,104 +31,119 @@ PORT = 23
 
 class telent_client(threading.Thread):
     def run(self):
-        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        conn.connect(("localhost", 23))
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect(("localhost", PORT))
+        self.conn.recv(1024)
+
+
+
 
 class GeneralTelnetReaderTest(unittest.TestCase):
-
-    # Checks to see if the server will start and accept a valid connection
+   # Checks to see if the server will start and accept a valid connection
     def test_startUp(self):
         try:
             lock = threading.Lock()
-            telnet = telnet_reader.server_plugin(lock, PORT)
+            self.telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
-
+        time.sleep(1)
         try:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
+
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            #
+
+            self.conn.recv(1024)
+
             connection = True
+            self.telnet.s.close()
         except Exception as e:
             print e
             connection = False
         finally:
             self.assertTrue(connection)
-            conn.close()
+
+            time.sleep(1)
 
     def test_run(self):
-
+        time.sleep(1)
         try:
             lock = threading.Lock()
-            telnet = telnet_reader.server_plugin(lock, PORT)
+            self.telnet = telnet_reader.server_plugin(lock, PORT)
         except Exception as e:
             self.fail("Server Failed to Start")
 
 
-
+        time.sleep(1)
         try:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 23))
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
 
-            conn.recv(1024)
-            conn.recv(1024)
-            conn.recv(1024)
-            conn.recv(1024)
-            conn.recv(1024)
-            conn.recv(1024)
-            conn.sendall('Username \r\n')
-            conn.recv(1024)
-            conn.send('Password \r\n')
-            conn.recv(1024)
-            conn.send('Command test \r\n')
-            conn.send('\x03')
-
+            for x in range(0, 1):
+                self.conn.recv(1024)
+            self.conn.sendall('Username \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('Password \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('Command test \r\n')
+            msg = self.conn.recv(1024)
+            print msg
+            self.conn.send('\x03')
+            msg = self.conn.recv(1024)
+            print msg
+            self.telnet.s.close()
             connection = True
         except Exception as e:
             print e
             connection = False
         finally:
             self.assertTrue(connection)
-            conn.close()
+
+            self.conn.close()
+            time.sleep(1)
 
 
     # Checks to see if the server will shutdown properly
     def test_teardown(self):
-         connection = False
-         try:
-             lock = threading.Lock()
-             telnet = telnet_reader.server_plugin(lock, PORT)
-         except Exception as e:
-             print e
-             self.fail("server failed to start")
+        connection = False
+        try:
+              lock = threading.Lock()
+              self.telnet = telnet_reader.server_plugin(lock, PORT)
+        except Exception as e:
+              self.fail("Server Failed to Start")
 
-         try:
-             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-             conn.connect(("localhost", 23))
+        time.sleep(1)
 
-             conn.recv(1024)
-             conn.recv(1024)
-             conn.recv(1024)
-             conn.recv(1024)
-             conn.recv(1024)
-             conn.recv(1024)
-             conn.send('Username \r\n')
-             conn.recv(1024)
-             conn.send('Password \r\n')
-             conn.recv(1024)
-             conn.send('Command test \r\n')
-             conn.send('\x03')
-         except Exception as e:
-             print e
-             self.fail("Client failed to make a connection")
+        try:
+            self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.conn.connect(("localhost", PORT))
+            self.conn.recv(1024)
+            self.conn.sendall('Username \r\n')
+            self.conn.recv(1024)
+            self.conn.send('Password \r\n')
+            self.conn.recv(1024)
+            self.conn.send('Command test \r\n')
+            self.conn.recv(1024)
+            self.conn.send('\x03')
+            self.conn.recv(1024)
 
-         try:
-             telnet.tear_down()
-             conn.connect(("localhost",23))
-         except Exception as e:
-             self.assertTrue(True)
-         finally:
-             self.fail("Server Failed to shutdown")
-             conn.close()
+            connection = True
+        except Exception as e:
+            print e
+            self.fail("client failed to connect")
+
+        try:
+            self.telnet.tear_down()
+            self.conn.connect(("localhost",PORT))
+            self.telnet.s.close()
+            self.fail("Server Failed to shutdown")
+        except Exception as e:
+            self.assertTrue(True)
+        finally:
+            self.conn.close()
+            time.sleep(1)
 
     def test_invalidport(self):
         try:
@@ -138,13 +154,13 @@ class GeneralTelnetReaderTest(unittest.TestCase):
 
         try:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 22))
+            conn.connect(("localhost", PORT-1))
             connection = True
         except Exception as e:
             connection = False
         try:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            conn.connect(("localhost", 24))
+            conn.connect(("localhost", PORT+1))
             connection = True
         except Exception as e:
             connection = False
@@ -154,28 +170,31 @@ class GeneralTelnetReaderTest(unittest.TestCase):
     #
     #Test to make sure that server is listening on multiple threads
     #Ignore error that it has to many threads running.
-    def test_mulithreads(self):
-        try:
-             lock = threading.Lock()
-             telnet = telnet_reader.server_plugin(lock, PORT)
-        except Exception as e:
-            self.fail("Server Failed to Start")
-
-        try:
-            threads = []
-            for num in range(0, 4):
-                thread = telent_client()
-                thread.start()
-                threads.append(thread)
-
-            for thread in threads:
-                thread.join()
-            connection = True
-        except Exception as e:
-            print e
-            connection = False
-        finally:
-            self.assertTrue(connection)
+    # def test_mulithreads(self):
+    #     try:
+    #          lock = threading.Lock()
+    #          telnet = telnet_reader.server_plugin(lock, PORT)
+    #     except Exception as e:
+    #         self.fail("Server Failed to Start")
+    #     time.sleep(1)
+    #     try:
+    #         threads = []
+    #         for num in range(0, 4):
+    #             thread = telent_client()
+    #             thread.start()
+    #             threads.append(thread)
+    #         telnet.s.close()
+    #         for thread in threads:
+    #             thread.join()
+    #
+    #         connection = True
+    #     except Exception as e:
+    #         print e
+    #         connection = False
+    #     finally:
+    #         self.assertTrue(connection)
+    #         # telnet.server.close()
+    #         time.sleep(1)
 
 
 '''
