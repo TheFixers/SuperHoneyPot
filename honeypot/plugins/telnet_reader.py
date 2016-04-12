@@ -86,7 +86,12 @@ class server_plugin(threading.Thread):
 
     def tear_down(self):
         print 'telnet '+str(self.port)+' closing'  
-        self.s.close()
+        
+        try:
+            self.s.close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 #Class for handling connections. This will be used to create threads
 class client_thread(threading.Thread):
