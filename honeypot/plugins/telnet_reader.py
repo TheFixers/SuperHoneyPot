@@ -142,7 +142,6 @@ class client_thread(threading.Thread):
                 overFlow = True;
 
             if '\xff\xf3\xff\xfd\x06' in data :
-                print 'HERE'
                 data.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
             elif "\r\n" in data or '\r\x00' in data :
 
