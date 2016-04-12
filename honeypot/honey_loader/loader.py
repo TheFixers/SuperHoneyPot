@@ -58,7 +58,11 @@ def start():
             plug = line.pop(0)          #first index is plugin name
             plugin = __import__(plug)
             for port in line:
-                plugins.append(plugin.server_plugin(lock, port))
+                try: 
+                    plugins.append(plugin.server_plugin(lock, port))
+                except socket.error as msg:
+                    print 'Plugin not opened on port, error.'
+                     
 
         time.sleep(1)     # wait 1 second so last plugin has time to bind
 

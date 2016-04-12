@@ -91,7 +91,12 @@ class server_plugin(threading.Thread):
 
     def tear_down(self):
         print 'ssh ' + str(self.port) + ' closing'
-        self.s.close()
+
+        try:
+            self.s.close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 
 class client_thread(paramiko.ServerInterface, threading.Thread):
