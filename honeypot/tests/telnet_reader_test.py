@@ -319,7 +319,11 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             if e.strerror == 'An existing connection was forcibly closed by the remote host':
                 bufferOverflow = True
                 pass
+            if e.message == '':
+                bufferOverflow = True
+                pass
             else:
+                print e
                 bufferOverflow = False
 
         try:
@@ -344,7 +348,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             print e
             connection = False
         finally:
-            self.assertTrue(connection & bufferOverflow)
+            self.assertTrue(bufferOverflow)
             self.conn.close()
             time.sleep(1)
 
