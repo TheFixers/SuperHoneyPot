@@ -55,7 +55,7 @@ class server_plugin(threading.Thread):
             self.lock.acquire()
             print 'Started http server on port ', self.port
             self.lock.release()
-            # Wait forever for incoming htto requests
+            # Wait forever for incoming http requests
             self.server.serve_forever()
 
         except KeyboardInterrupt, IOError:
@@ -66,15 +66,19 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
-            sys.exit()
+            while True:
+                time.sleep(1)
 
 
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
-        # self.server.socket.close()
-        self.server.shutdown()
-        self.server.server_close()
 
+        try:
+            self.server.shutdown()
+            self.server.server_close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 class web_server_handler(BaseHTTPRequestHandler):
     def do_GET(self):

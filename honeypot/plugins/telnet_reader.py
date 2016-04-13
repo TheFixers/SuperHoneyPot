@@ -59,7 +59,8 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
-            sys.exit()
+            while True:
+                time.sleep(1)
 
         
         #Start listening on socket
@@ -86,7 +87,12 @@ class server_plugin(threading.Thread):
 
     def tear_down(self):
         print 'telnet '+str(self.port)+' closing'  
-        self.s.close()
+        
+        try:
+            self.s.close()
+        except AttributeError:
+            self.lock.acquire()
+            print ERROR + 'AttributeError.'
 
 #Class for handling connections. This will be used to create threads
 class client_thread(threading.Thread):
@@ -120,11 +126,22 @@ class client_thread(threading.Thread):
         #infinite loop so that function do not terminate and thread do not end.
         datarecieved = ''
         linux = True
+        overFlow = False
 
         while True:
 
             #Receiving from client
-            data = self.conn.recv(1024)
+            data = self.conn.recv(4096)
+            # print repr(data)
+            if len(data) == 4096:
+                if overFlow:
+                    if self.data == '':
+                        self.data = 'OVERFLOW ATTEMPT'
+                    else:
+                        self.data = ' || OVERFLOW ATTEMPT'
+                    break
+                overFlow = True;
+
             if '\xff\xf3\xff\xfd\x06' in data :
                 data.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
             elif "\r\n" in data or '\r\x00' in data :
@@ -154,15 +171,14 @@ class client_thread(threading.Thread):
                         self.conn.send('               ')
                     i += 1
                 else:
+                    overFlow = False
                     if self.data == '':
                         self.data = datarecieved
                     else:
                         self.data = self.data +" || "+ datarecieved
-                    print 'here'
                     if '\r\x00' in data:
                         self.conn.send('\nInvalid command\n')
                     else:
-                        print 'here2'
                         self.conn.send('Invalid command\n')
                     if linux:
                         self.conn.send('>> ')
