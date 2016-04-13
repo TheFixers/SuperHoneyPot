@@ -72,7 +72,8 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
-            sys.exit()
+            while True:
+                time.sleep(1)
 
     def tear_down(self):
         print 'HTTP '+str(self.port)+' closing'
