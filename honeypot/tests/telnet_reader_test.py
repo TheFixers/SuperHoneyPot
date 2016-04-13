@@ -278,7 +278,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
 
     #test if the client tries to overflow the buffer
     def test_bufferoverflow(self):
-        buff = '\x41'* 16793598
+        buff = '\x41'* 16793598 # sends 16,793,598 A
         bufferOverflow = False
         time.sleep(1)
         try:
@@ -290,7 +290,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
-            self.conn.settimeout(5.0)
+            # self.conn.settimeout(5.0)
             msg = self.conn.recv(1024)
             # print msg
             self.conn.sendall('Username \r\n')
@@ -299,7 +299,7 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.conn.send('Password \r\n')
             msg = self.conn.recv(1024)
             # print msg
-            start = time.time()
+            # self.conn.settimeout(30.0)
             self.conn.sendall('' + buff + buff + ' \r\n')
             self.conn.sendall('\r\n')
             msg = self.conn.recv(1024)
@@ -309,14 +309,19 @@ class GeneralTelnetReaderTest(unittest.TestCase):
                 bufferOverflow = False
             self.conn.send('\x03')
             self.conn.recv(1024)
-            self.conn.settimeout(30.0)
-            self.telnet.s.close()
+            # self.telnet.s.close()
             connection = True
         except Exception as e:
             if e.message == 'timed out':
                 self.fail('Client had to timeout: 30 seconds')
-            print e
-            connection = False
+            # We want the connection to close when a buffer Overflow attack happens.
+            # This prevents an accidently Json dumps with buffer Overflow attacks.
+            if e.strerror == 'An existing connection was forcibly closed by the remote host':
+                bufferOverflow = True
+                pass
+            else:
+                bufferOverflow = False
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
