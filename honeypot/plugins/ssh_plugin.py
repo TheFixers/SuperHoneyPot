@@ -27,7 +27,7 @@ import threading
 import json
 from binascii import hexlify
 import paramiko
-from paramiko.py3compat import b, u
+from paramiko.py3compat import u
 import os
 import time
 

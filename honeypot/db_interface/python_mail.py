@@ -22,23 +22,28 @@ import smtplib
 
 # Specifying the from and to addresses
 
-fromaddr = 'honeypot4260@gmail.com'
-toaddrs  = 'svoluch@gmail.com'
+class python_mail():
 
-# Writing the message (this message will appear in the email)
+    fromaddr = 'honeypot4260@gmail.com'
+    toaddrs  = 'cbenda3@msudenver.edu'
 
-msg = 'Failed a connection to MongoDB server'
+    # Writing the message (this message will appear in the email)
 
-# Gmail Login
+    msg = 'Failed a connection to MongoDB server. Please check database status.'
 
-username = 'honeypot4260@gmail.com'
-password = 'Teddybearfood'
+    # Gmail Login
 
-# Sending the mail  
+    username = 'honeypot4260@gmail.com'
+    password = 'Teddybearfood'
 
-server = smtplib.SMTP('smtp.gmail.com:587')
-server.ehlo()
-server.starttls()
-server.login(username,password)
-server.sendmail(fromaddr, toaddrs, msg)
-server.quit()
+    def __init__(self):
+        pass
+
+    # Sending the mail
+    def send_mail(self):
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(self.username, self.password)
+        server.sendmail(self.fromaddr, self.toaddrs, self.msg)
+        server.quit()
