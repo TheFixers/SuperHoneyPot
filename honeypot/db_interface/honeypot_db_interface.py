@@ -18,19 +18,22 @@
 ## https://docs.mongodb.org/getting_started/python/client
 
 
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
+import python_mail
 import json, bson
 import os
-
+import threading
 
 path_to_mongoClient = os.path.dirname(os.path.realpath(__file__)).replace("db_interface", "data_files")
 mongoClient = open(path_to_mongoClient + os.path.sep + "mongoClient.txt", "r").read() # get first line of file
 
+
 class honeypot_database_interface():
 
     # this will contain the information needed to connect to the remote database
-    db_host = MongoClient(mongoClient)
+    db_host = MongoClient(mongoClient, socketTimeoutMS=10000)
     database = db_host.HoneyPot
+    mail_server = python_mail.python_mail()
 
     def __init__(self):
         pass
@@ -41,8 +44,13 @@ class honeypot_database_interface():
 
     def receive_data(self, json_dump_in):
         # receives data from the plugins
+        result = None
         current_data = json.loads(json_dump_in)
         # data may need to be formatted here, prior to sending to database below
-        result = honeypot_database_interface.database.clientInfo.insert_one(current_data)
-        result.inserted_id
+
+        try:
+            honeypot_database_interface.database.clientInfo.insert_one(current_data).inserted_id
+        except errors.ServerSelectionTimeoutError:
+            print('OH NOEZ')
+            self.mail_server.send_mail()
         return
