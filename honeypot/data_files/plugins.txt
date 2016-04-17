@@ -1,5 +1,5 @@
 #root
-http_reader		80	1111
-https_reader 	443 4443-12
-ssh_plugin 		22	8888-8900
-telnet_reader	23  9000 53 
+http_reader		80	8080
+https_reader 	443
+ssh_plugin 		22  4343
+telnet_reader	23   
