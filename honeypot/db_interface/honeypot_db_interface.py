@@ -51,6 +51,5 @@ class honeypot_database_interface():
         try:
             honeypot_database_interface.database.clientInfo.insert_one(current_data).inserted_id
         except errors.ServerSelectionTimeoutError:
-            print('OH NOEZ')
             self.mail_server.send_mail()
         return
