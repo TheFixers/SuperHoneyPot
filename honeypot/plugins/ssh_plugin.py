@@ -43,6 +43,7 @@ host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privat
 HOST = ''
 ERROR = 'Error Source:: SSH Plugin. '
 
+
 class server_plugin(threading.Thread):
 
     def __init__(self, lock, port):
@@ -178,8 +179,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
             client_thread.clientPassword += '<null> '
         else:
             client_thread.clientPassword += (password + ' ')
-        if (username == 'robey') and (password == 'foo'):
-            return paramiko.AUTH_FAILED  # (default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
@@ -192,15 +191,11 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
     def check_auth_gssapi_with_mic(self, username,
                                    gss_authenticated=paramiko.AUTH_FAILED,
                                    cc_file=None):
-        if gss_authenticated == paramiko.AUTH_SUCCESSFUL:
-            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_keyex(self, username,
                                 gss_authenticated=paramiko.AUTH_FAILED,
                                 cc_file=None):
-        if gss_authenticated == paramiko.AUTH_SUCCESSFUL:
-            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def enable_auth_gssapi(self):

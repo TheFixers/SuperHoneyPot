@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 
+## [1.0.0] - 2016-16-04
+### Added
+- All plugins stable and functioning.
+- Email function added for database connection failure.
+- Initial build release version.
+
+## [0.4.0] - 2016-09-04
+### Changed
+- Correcting plugin errors.
+- Created release files, initial debian packaging.
+- Beta release.
+
 ## [0.3.5] - 2016-13-03
 ### Added
 - Moved plugin config file and datafiles to data_files
