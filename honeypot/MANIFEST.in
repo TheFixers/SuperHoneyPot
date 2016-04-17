@@ -1,5 +1,6 @@
 include LICENSE
 include CHANGELOG.md
+include requirements.txt
 recursive-include data_files *
 recursive-include tests *
 recursive-exclude tests *.pyc *.pyo

@@ -8,16 +8,24 @@ import sys
 from setuptools import setup, find_packages
 
 
-
 path = os.path.dirname(os.path.realpath(__file__))+ os.sep + "honey_loader"
 sys.path.insert(0, path)
 
 import version
 
-path = os.path.dirname(os.path.realpath(__file__)).replace('honeypot','')
+path = os.path.dirname(os.path.realpath(__file__))
+print(path)
+path1 = path
+readme_path = path + os.sep +'README.txt'
+print(readme_path)
 
-with open(path + 'README.md') as f:
+path = os.path.dirname(os.path.realpath(__file__)).replace('honeypot','')
+print(path)
+
+with open(readme_path) as f:
     readme = f.read()
+
+
 
 long_description = """
 To find out what's new in this version of SuperHoneyPot, please see the changelog file
@@ -32,7 +40,7 @@ The honey pot allows connections to be made to it, and mimics the appropriate pr
 It gathers information from whoever attempts the connection.`.
 """ % (readme)
 
-with open('requirements.txt') as f:
+with open(path1 + os.sep + 'requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(

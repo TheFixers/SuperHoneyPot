@@ -27,7 +27,7 @@ import threading
 import json
 from binascii import hexlify
 import paramiko
-from paramiko.py3compat import b, u
+from paramiko.py3compat import u
 import os
 import time
 
@@ -42,6 +42,7 @@ host_key = paramiko.RSAKey(filename=private_key_filepath + os.path.sep + 'privat
 
 HOST = ''
 ERROR = 'Error Source:: SSH Plugin. '
+
 
 class server_plugin(threading.Thread):
 
@@ -65,7 +66,8 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
-            sys.exit()
+            while True:
+                time.sleep(1)
 
         #Start listening on socket
         self.s.listen(4)
@@ -177,8 +179,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
             client_thread.clientPassword += '<null> '
         else:
             client_thread.clientPassword += (password + ' ')
-        if (username == 'robey') and (password == 'foo'):
-            return paramiko.AUTH_FAILED  # (default: paramiko.AUTH_SUCCESSFUL)
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
@@ -191,28 +191,11 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
     def check_auth_gssapi_with_mic(self, username,
                                    gss_authenticated=paramiko.AUTH_FAILED,
                                    cc_file=None):
-        """
-        .. note::
-            We are just checking in `AuthHandler` that the given user is a
-            valid krb5 principal! We don't check if the krb5 principal is
-            allowed to log in on the server, because there is no way to do that
-            in python. So if you develop your own SSH server with paramiko for
-            a certain platform like Linux, you should call ``krb5_kuserok()`` in
-            your local kerberos library to make sure that the krb5_principal
-            has an account on the server and is allowed to log in as a user.
-        .. seealso::
-            `krb5_kuserok() man page
-            <http://www.unix.com/man-page/all/3/krb5_kuserok/>`_
-        """
-        if gss_authenticated == paramiko.AUTH_SUCCESSFUL:
-            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_gssapi_keyex(self, username,
                                 gss_authenticated=paramiko.AUTH_FAILED,
                                 cc_file=None):
-        if gss_authenticated == paramiko.AUTH_SUCCESSFUL:
-            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def enable_auth_gssapi(self):
@@ -254,8 +237,6 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         #print(dump_string)
         client_thread.interface.receive_data(dump_string)
         return
-
-
 
 if __name__ == '__main__':
     try:
