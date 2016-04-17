@@ -37,6 +37,7 @@ import honeypot_db_interface
  
 HOST = ''
 ERROR = 'Error Source:: Telnet Plugin. '
+dead = []
 
 class server_plugin(threading.Thread):
 
@@ -49,7 +50,7 @@ class server_plugin(threading.Thread):
         self.start()
 
     def run(self):
-
+        global dead
         #Bind socket to local host and port
         try:
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -59,6 +60,7 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
+            dead.append(self.port)
             while True:
                 time.sleep(1)
 
@@ -86,13 +88,14 @@ class server_plugin(threading.Thread):
                 self.tear_down()
 
     def tear_down(self):
-        print 'telnet '+str(self.port)+' closing'  
-        
-        try:
-            self.s.close()
-        except AttributeError:
-            self.lock.acquire()
-            print ERROR + 'AttributeError.'
+        if not self.port in dead: 
+            print 'telnet '+str(self.port)+' closing'  
+            
+            try:
+                self.s.close()
+            except AttributeError:
+                self.lock.acquire()
+                print ERROR + 'AttributeError.'
 
 #Class for handling connections. This will be used to create threads
 class client_thread(threading.Thread):

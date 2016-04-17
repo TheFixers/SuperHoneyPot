@@ -37,6 +37,7 @@ host_key = private_key_filepath + os.path.sep + "ssl.pem"
 import honeypot_db_interface
 
 ERROR = 'Error Source:: HTTPS Plugin. '
+dead = []
 
 class server_plugin(threading.Thread):
 
@@ -53,7 +54,7 @@ class server_plugin(threading.Thread):
 
         # Create a web server and define the handler to manage the
         # incoming request
-
+        global dead
         try:
             self.server = HTTPServer(('', self.port), web_server_handler)
             # self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -72,18 +73,20 @@ class server_plugin(threading.Thread):
             print ERROR + 'Error Number: ' + str(msg[0])
             print '    Port: ' + str(self.port) + ', Message: ' + msg[1]
             self.lock.release()
+            dead.append(self.port)
             while True:
                 time.sleep(1)
 
     def tear_down(self):
-        print 'HTTP '+str(self.port)+' closing'
-        
-        try:
-            self.server.shutdown()
-            self.server.server_close()
-        except AttributeError:
-            self.lock.acquire()
-            print ERROR + 'AttributeError.'
+        if not self.port in dead:  
+            print 'HTTP '+str(self.port)+' closing'
+            
+            try:
+                self.server.shutdown()
+                self.server.server_close()
+            except AttributeError:
+                self.lock.acquire()
+                print ERROR + 'AttributeError.'
 
 
 class web_server_handler(BaseHTTPRequestHandler):
