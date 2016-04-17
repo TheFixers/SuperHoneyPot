@@ -29,7 +29,7 @@ CODE FROM: https://github.com/fabric/fabric/blob/master/fabric/version.py
 from subprocess import Popen, PIPE
 from os.path import abspath, dirname
 
-VERSION = (1, 0, 0, 'a', 0)
+VERSION = (1, 0, 1, 'a', 0)
 
 
 def git_sha():
