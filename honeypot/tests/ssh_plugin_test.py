@@ -221,7 +221,32 @@ class GeneralServerTest(unittest.TestCase):
             print(connection)
             ssh.close()
             time.sleep(1)
-
+    # def test_bufferoverflow(self):
+    #     buff = '\x41'* 16793598 # sends 16,793,598 A
+    #     try:
+    #         lock = threading.Lock()
+    #         sshServer = ssh_plugin.server_plugin(lock, PORT)
+    #     except Exception as e:
+    #         print("Server Failed to Start")
+    #     time.sleep(1)
+    #     try:
+    #         ssh = paramiko.SSHClient()
+    #         ssh.set_missing_host_key_policy(
+    #             paramiko.AutoAddPolicy())
+    #         ssh.connect('localhost', username='' + buff +buff,
+    #                     password='' + buff + buff)
+    #
+    #         connection = True
+    #     except Exception as e:
+    #         if e.message == 'Authentication failed.':
+    #             connection = True
+    #         else:
+    #             print e
+    #             connection = False
+    #     finally:
+    #         print(connection)
+    #         ssh.close()
+    #         time.sleep(1)
 
 if __name__ == '__main__':
     unittest.main()
