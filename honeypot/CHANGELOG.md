@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 
+## [1.0.1] - 2016-17-04
+### Added
+- All plugins will now close properly when ports are not in use.
+
 ## [1.0.0] - 2016-16-04
 ### Added
 - All plugins stable and functioning.
