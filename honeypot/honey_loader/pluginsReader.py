@@ -69,7 +69,7 @@ def repeat_check(lines):
 					ports.append(port)
 					array.append(port)
 				else:
-					print 'error: attempted to open port:' + port + ' twice. This is not allowed.'
+					print 'error: attempted to open port:' + port + ' twice. This is not allowed. Only running first mention.'
 			temp.append(array[:])
 			del array[:]
 		else:
