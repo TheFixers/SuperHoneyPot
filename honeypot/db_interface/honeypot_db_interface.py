@@ -52,4 +52,6 @@ class honeypot_database_interface():
             honeypot_database_interface.database.clientInfo.insert_one(current_data).inserted_id
         except errors.ServerSelectionTimeoutError:
             self.mail_server.send_mail()
+        except errors.NetworkTimeout:
+            print('Timed out.')
         return
