@@ -32,7 +32,7 @@ from os.path import abspath, dirname
 VERSION = (1, 0, 2, 'a', 0)
 
 
-def git_sha():
+def git_sha():umount /med
     loc = abspath(dirname(__file__))
     try:
         p = Popen(
