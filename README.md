@@ -2,6 +2,12 @@
 
 The honey pot allows connections to be made to it, and mimics the appropriate protocols that are defined as plugins without actually allowing access. It gathers information from whoever attempts the connection, and stores the information remotely in a MongoDB database.  This application was built around running on a RaspberryPi Zero to make it easy to deploy in any physical environment with a network. We wanted a cost effective solution that could be installed in a matter of minutes.
 
+
+Text file Client Requirements are here: https://github.com/redragonx/HoneyPotExtras
+
+[![Build Status](https://travis-ci.org/TheFixers/SuperHoneyPot.svg?branch=master)](https://travis-ci.org/TheFixers/SuperHoneyPot)
+
+
 Navigation
 ----------
 [SuperHoneyPot](#superhoneypot) |
