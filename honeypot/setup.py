@@ -1,31 +1,45 @@
 #!/usr/bin/env python
+"""
+    This file is part of SuperHoneyPot.
+
+    SuperHoneyPot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SuperHoneyPot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
+"""
 
 from __future__ import with_statement
-
 import os
 import sys
-
 from setuptools import setup, find_packages
 
-
+# Sets the path to locate the version.py file for import of version
 path = os.path.dirname(os.path.realpath(__file__))+ os.sep + "honey_loader"
 sys.path.insert(0, path)
 
 import version
 
+# Sets the path to locate the readme.txt file
 path = os.path.dirname(os.path.realpath(__file__))
 print(path)
 path1 = path
 readme_path = path + os.sep +'README.txt'
 print(readme_path)
 
+# Sets the path to the parent directory
 path = os.path.dirname(os.path.realpath(__file__)).replace('honeypot','')
 print(path)
 
 with open(readme_path) as f:
     readme = f.read()
-
-
 
 long_description = """
 To find out what's new in this version of SuperHoneyPot, please see the changelog file
@@ -74,8 +88,6 @@ setup(
             'Operating System :: Unix',
             'Operating System :: POSIX',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 2.5',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Topic :: System :: Systems Administration',
             'Topic :: Networking :: Network Sniffer'

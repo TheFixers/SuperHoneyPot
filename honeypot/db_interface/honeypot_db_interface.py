@@ -17,7 +17,6 @@
 
 ## https://docs.mongodb.org/getting_started/python/client
 
-
 from pymongo import MongoClient, errors
 import python_mail
 import json, bson

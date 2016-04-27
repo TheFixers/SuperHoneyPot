@@ -37,7 +37,7 @@ lock = None
 def start_plugins():
 
     try:
-
+        # Checks to see if program has root privileges and warns user if not
         if check_root() == 0:
             start()
         else:
@@ -52,7 +52,7 @@ def start():
     global lock
     plugins = []
     try:
-
+        # Read through the plugin list and load them with the indicated ports
         lock = threading.Lock()
         for line in lines:
             plug = line.pop(0)          #first index is plugin name
@@ -67,17 +67,17 @@ def start():
         time.sleep(1)     # wait 1 second so last plugin has time to bind
 
         if os.name == 'posix' and platform.dist()[0] == '':
-            drop_privileges_Arch()
+            drop_privileges_Arch()      # drops root privileges
         else:
             drop_privileges()
 
         while True:
-            time.sleep(1)
+            time.sleep(1)   # Keeps the program running until keyboard interrupt closes.
     except KeyboardInterrupt:
         lock.acquire()
         print '\nexiting via KeyboardInterrupt'
         for plugin in plugins:
-            plugin.tear_down()
+            plugin.tear_down()    # Graceful closure of each plugin and its open sockets
         lock.release()
         sys.exit()
     except Exception as e:
@@ -87,18 +87,6 @@ def start():
             plugin.tear_down()
         lock.release()
         sys.exit()
-
-
-# Very experimental, doesn't work for all linux distros where root has no password (debian based os needs to do sudo su)
-# Not sure how to check for this issue...
-
-# def prompt_sudo():
-#     ret = 0
-#     if os.geteuid() != 0:
-#         args = ['sudo', sys.executable] + sys.argv + [os.environ]
-#     # the next line replaces the currently-running process with the sudo
-#     os.execlpe('sudo', *args)
-#     return ret and os.geteuid() == 0
 
 
 def check_root():
@@ -115,7 +103,7 @@ def check_root():
 
 def drop_privileges(uid_name="nobody", gid_name="nogroup"):
     if os.getuid() != 0:
-        # We're not root so, like, whatever dude
+        # Already not root, take no action
         return
 
     # Get the uid/gid from the name
@@ -134,7 +122,7 @@ def drop_privileges(uid_name="nobody", gid_name="nogroup"):
 
 def drop_privileges_Arch(uid_name="nobody", gid_name="nobody"):
     if os.getuid() != 0:
-        # We're not root so, like, whatever dude
+        # Already not root, take no action
         return
 
     # Get the uid/gid from the name

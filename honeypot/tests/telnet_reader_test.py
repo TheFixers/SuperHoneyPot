@@ -1,13 +1,29 @@
 #!/usr/bin/python2
 # -*- coding:  UTF-8 -*-
 
+"""
+    This file is part of SuperHoneyPot.
+
+    SuperHoneyPot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SuperHoneyPot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import os
-import sys
-import unittest
 import socket
+import sys
 import threading
-import thread
 import time
+import unittest
 
 path = os.path.dirname(os.path.realpath(__file__)).replace("tests", "plugins")
 sys.path.insert(0, path)
@@ -17,12 +33,12 @@ sys.path.insert(0,path)
 path = path.replace("plugins","")
 '''
 
-
 TestCase0: test_startUp: Checks to see if the server will start and accept a valid connection
-TestCase1: test_run: Checks to see if the plugin with start and up
+TestCase1: test_run: Checks to see if the plugin with start up and run with valid inputs
 TestCase2: test_teardown: Checks to see if the plugin will close ports and shut down correctly
 TestCase3: test_invalidport: Checks to see if the server is only listen on the assigned port
-TestCase4: test_mulithreads: Checks to see if the server can accept multiple connections at once
+TestCase4: test_mulithreads: Checks to see if the server can accept multiple connections at once /// This is commented
+out since it incapable with Travis CI-nosetests.
 TestCase5: test_nonacsii: see if the sever can handle nonascii character and ctl+[char]
 TestCase6: test_shellshock: shell shock test
 TestCase7: test_bufferoverflow: test if the client tries to overflow the buffer
@@ -33,17 +49,19 @@ PORT = 23
 
 class telent_client(threading.Thread):
     def run(self):
+
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.connect(("localhost", PORT))
         self.conn.recv(1024)
 
 class GeneralTelnetReaderTest(unittest.TestCase):
-   # Checks to see if the server will start and accept a valid connection
+
     def test_startUp(self):
         time.sleep(1)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
         time.sleep(1)
@@ -52,25 +70,28 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.conn.connect(("localhost", PORT))
             self.conn.recv(1024)
             connection = True
-
             self.telnet.s.close()
             self.conn.close()
+
         except Exception as e:
             print e
             connection = False
+
         finally:
             self.assertTrue(connection)
-
             time.sleep(1)
-    # Checks to see if the telnet plugin with start and communicate with a single client
+
     def test_run(self):
         time.sleep(1)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
+
         time.sleep(1)
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
@@ -89,24 +110,27 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             # print msg
             self.telnet.s.close()
             connection = True
+
         except Exception as e:
             print e
             connection = False
+
         finally:
             self.assertTrue(connection)
             self.conn.close()
             time.sleep(1)
 
-
-    # Checks to see if the server will shutdown properly
     def test_teardown(self):
         connection = False
         try:
               lock = threading.Lock()
               self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
               self.fail("Server Failed to Start")
+
         time.sleep(1)
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
@@ -120,86 +144,101 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.conn.send('\x03')
             self.conn.recv(1024)
             connection = True
+
         except Exception as e:
             print e
             self.fail("client failed to connect")
+
         try:
             self.telnet.tear_down()
             self.conn.connect(("localhost",PORT))
             self.fail("Server Failed to shutdown")
+
         except Exception as e:
             self.assertTrue(True)
+
         finally:
             self.telnet.s.close()
             self.conn.close()
             time.sleep(1)
-    # test invalidports make sure the plus or minus one port is not activated by this plugin
+
     def test_invalidport(self):
         time.sleep(1)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
+
         try:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             conn.connect(("localhost", PORT-1))
             connection = True
+
         except Exception as e:
             connection = False
+
         try:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             conn.connect(("localhost", PORT+1))
             connection = True
+
         except Exception as e:
             connection = False
+
         finally:
             self.assertFalse(connection)
             self.telnet.s.close()
             conn.close()
             time.sleep(1)
 
-    #Test to make sure that server is listening on multiple threads
-    # def test_mulithreads(self):
-    #     time.sleep(1)
-    #     try:
-    #          lock = threading.Lock()
-    #          self.telnet = telnet_reader.server_plugin(lock, PORT)
-    #     except Exception as e:
-    #         self.fail("Server Failed to Start")
-    #     time.sleep(1)
-    #     try:
-    #         threads = []
-    #         for num in range(0, 4):
-    #             thread = telent_client()
-    #             thread.start()
-    #             threads.append(thread)
-    #         for thread in threads:
-    #             thread.join()
-    #         connection = True
-    #     except Exception as e:
-    #         print e
-    #         connection = False
-    #     finally:
-    #         self.telnet.s.close()
-    #         self.assertTrue(connection)
-    #         time.sleep(1)
+    '''
+    def test_mulithreads(self):
+        time.sleep(1)
+        try:
+             lock = threading.Lock()
+             self.telnet = telnet_reader.server_plugin(lock, PORT)
+        except Exception as e:
+            self.fail("Server Failed to Start")
+        time.sleep(1)
+        try:
+            threads = []
+            for num in range(0, 4):
+                thread = telent_client()
+                thread.start()
+                threads.append(thread)
+            for thread in threads:
+                thread.join()
+            connection = True
+        except Exception as e:
+            print e
+            connection = False
+        finally:
+            self.telnet.s.close()
+            self.assertTrue(connection)
+            time.sleep(1)
+    '''
 
-    # see if the sever can handle nonascii character and ctl+[char]
     def test_nonacsii(self):
         time.sleep(2)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
+
         time.sleep(2)
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
+
         except Exception as e:
             print e
             self.fail("Failed to make a connection")
+
         try:
             self.conn.recv(1024)
             self.conn.sendall('Username \r\n')
@@ -215,36 +254,31 @@ class GeneralTelnetReaderTest(unittest.TestCase):
                 '\x20 \x21 \x22 \x23 \x24 \x25 \x26 \x27 \x28 \x29 \x2A \x2B \x2C \x2D \x2E \x2F'
                 '  \r\n')
             self.conn.recv(1024)
-            '''
-            self.conn.sendall(
-                '\x10' '\x13'' \x11 ' '\x12' '\x14 ' '\x15 ' '\x16 ' '\x17 ' '\x18 ' '\x19 ' '\x1A '
-                '\x1B ' '\x1C ' '\x1D ' '\x1E ' '\x1F'
-                '\r\n')
-
-            self.conn.recv(1024)
-            '''
             self.conn.send('\x03')
             self.conn.recv(1024)
             nonAscii = True
+
         except Exception as e:
             print e
             nonAscii = False
+
         finally:
             self.telnet.s.close()
             self.assertTrue(nonAscii)
             self.conn.close()
             time.sleep(1)
 
-    # shell shock test
     def test_shellshock(self):
         shellshockfail = False
         time.sleep(1)
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
         time.sleep(1)
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
@@ -259,34 +293,42 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.conn.send('env z="() { :; }; echo vulnerable" bash -c "echo foo"'' \r\n')
             msg = self.conn.recv(1024)
             # print msg
+
             if msg in 'vulnerable':
                 shellshockfail = False
                 self.fail("ShellShock occured: " + msg)
+
             else:
                 shellshockfail = True
+
             self.conn.send('\x03')
             self.conn.recv(1024)
             self.telnet.s.close()
             connection = True
+
         except Exception as e:
             print e
             connection = False
+
         finally:
             self.assertTrue(connection & shellshockfail)
             self.conn.close()
             time.sleep(1)
 
-    #test if the client tries to overflow the buffer
     def test_bufferoverflow(self):
         buff = '\x41'* 16793598 # sends 16,793,598 A
         bufferOverflow = False
         time.sleep(1)
+
         try:
             lock = threading.Lock()
             self.telnet = telnet_reader.server_plugin(lock, PORT)
+
         except Exception as e:
             self.fail("Server Failed to Start")
+
         time.sleep(1)
+
         try:
             self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn.connect(("localhost", PORT))
@@ -303,25 +345,32 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             self.conn.sendall('' + buff + buff + ' \r\n')
             self.conn.sendall('\r\n')
             msg = self.conn.recv(1024)
+
             if msg != 'Invalid command\n>> ':
                 bufferOverflow = True
+
             else:
                 bufferOverflow = False
+
             self.conn.send('\x03')
             self.conn.recv(1024)
             # self.telnet.s.close()
             connection = True
+
         except Exception as e:
+
             if e.message == 'timed out':
                 self.fail('Client had to timeout: 30 seconds')
             # We want the connection to close when a buffer Overflow attack happens.
-            # This prevents an accidently Json dumps with buffer Overflow attacks.
+
             if e.strerror == 'An existing connection was forcibly closed by the remote host':
                 bufferOverflow = True
                 pass
+
             if e.message == '':
                 bufferOverflow = True
                 pass
+
             else:
                 print e
                 bufferOverflow = False
@@ -344,9 +393,11 @@ class GeneralTelnetReaderTest(unittest.TestCase):
             # print msg
             self.telnet.s.close()
             connection = True
+
         except Exception as e:
             print e
             connection = False
+
         finally:
             self.assertTrue(bufferOverflow)
             self.conn.close()

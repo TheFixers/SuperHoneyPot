@@ -19,13 +19,19 @@
 
 
 import smtplib
+import os
 
 # Specifying the from and to addresses
 
 class python_mail():
 
-    fromaddr = 'honeypot4260@gmail.com'
-    toaddrs  = 'cbenda3@msudenver.edu'
+    path_to_mail_info = os.path.dirname(os.path.realpath(__file__)).replace("db_interface", "data_files")
+    text_file = open(path_to_mail_info + os.path.sep + "mail_info.txt", "r")
+    info = text_file.readlines()
+    info = [x.strip('\n') for x in info]
+
+    fromaddr = info[0]
+    toaddrs  = info[1]
 
     # Writing the message (this message will appear in the email)
 
@@ -33,8 +39,8 @@ class python_mail():
 
     # Gmail Login
 
-    username = 'honeypot4260@gmail.com'
-    password = 'Teddybearfood'
+    username = info[2]
+    password = info[3]
 
     def __init__(self):
         pass
