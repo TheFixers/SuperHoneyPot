@@ -1,4 +1,21 @@
-import sys
+#!/usr/bin/python2
+"""
+    This file is part of SuperHoneyPot.
+
+    SuperHoneyPot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SuperHoneyPot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with SuperHoneyPot.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import re
 import os
 
@@ -24,7 +41,7 @@ def removeExtraLines(lines):
 
 """
  array example ['http_reader', '80', '1111']
- returns plugin in first plines_to_line_plus_port(osition followed by ports to be used by plugin
+ returns plugin in first lines_to_line_plus_port(position followed by ports to be used by plugin)
 """
 def lines_to_line_plus_port(lines):
 	temp = []
@@ -32,6 +49,9 @@ def lines_to_line_plus_port(lines):
 		temp.append(line.split())
 	return temp
 
+"""
+  Checks to see if there are dashes in between port numbers, and then creates a range of ports to open
+"""
 def dashes(lines):
 	temp = []
 	lineArray = []
@@ -54,7 +74,9 @@ def dashes(lines):
 		del lineArray[:]
 	return temp
 
-
+"""
+  Checks the list again for repeats of plugin names or duplicate port numbers.
+"""
 def repeat_check(lines):
 	ports = []
 	plugins = []
@@ -69,14 +91,14 @@ def repeat_check(lines):
 					ports.append(port)
 					array.append(port)
 				else:
-					print 'error: attempted to open port:' + port + ' twice. This is not allowed. Only running first mention.'
+					print 'Error: attempted to open port:' + port + ' twice. This is not allowed. Only running first mention.'
 			temp.append(array[:])
 			del array[:]
 		else:
-			print 'error: attempted to have multiple lines of plugin: ' + line[0] + '. This is not allowed.'
+			print 'Error: attempted to have multiple lines of plugin: ' + line[0] + '. This is not allowed.'
 
 	return temp
 
 
 if __name__ == '__main__':
-   	print lineReader()
+	print lineReader()

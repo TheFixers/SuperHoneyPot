@@ -122,7 +122,7 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
         threading.Thread.__init__(self)
         self.lock = lock
         client_thread.client = conn
-        client_thread.address = addr    # explination of (ip, port) in addr 
+        client_thread.address = addr    # explanation of (ip, port) in addr
         client_thread.clientIP = addr[0]
         client_thread.PORT = port
         client_thread.socket = addr[1]  # http://stackoverflow.com/questions/12454675/whats-the-return-value-of-socket-accept-in-python
@@ -217,16 +217,8 @@ class client_thread(paramiko.ServerInterface, threading.Thread):
 
     def display_output(self):
         # Server-side display string
-        print('SSH Attack: ' + client_thread.time.__str__() + ' from ' + client_thread.clientIP + ' on port ' + client_thread.PORT.__str__() + '.')
-        '''
-        # Prints out all captured data from the attacker
-        print('Attack time: ' + client_thread.time.__str__())
-        print('Attacker key: ' + client_thread.pulledKey)
-        print('Attacker IP:  ' + client_thread.clientIP)
-        print('Port of incoming attack: ' + client_thread.PORT.__str__())
-        print('Submitted username: ' + client_thread.clientUsername)
-        print('Submitted password: ' + client_thread.clientPassword)
-        '''
+        print('SSH Attack: ' + client_thread.time.__str__() + ' from ' + client_thread.clientIP
+                                                    + ' on port ' + client_thread.PORT.__str__() + '.')
         return
 
     def send_output(self):
