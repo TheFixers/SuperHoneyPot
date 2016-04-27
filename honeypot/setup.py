@@ -63,7 +63,7 @@ setup(
         description='A plugin based honeypot that\'s easy to install and use.',
         long_description=long_description,
         author='Chris Benda, Stephen Chavez, Fred Montoya, Mikhail Batkalin, Brad Gill, William King',
-        author_email='stephen.chavez12@gmail.com',
+        author_email='stephen@dicesoft.net',
         url='https://github.com/redragonx/SuperHoneyPot',
         packages=find_packages(),
         package_data={
