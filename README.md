@@ -137,4 +137,4 @@ AGPL
 
 Contact
 -------
-Email: <a href="mailto:stephen@dicesoft.net">stephen.chavez12@gmail.com</a>
+Email: <a href="mailto:stephen@dicesoft.net">stephen@dicesoft.net</a>
