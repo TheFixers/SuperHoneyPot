@@ -134,75 +134,84 @@ class client_thread(threading.Thread):
         while True:
 
             #Receiving from client
-            data = self.conn.recv(4096)
-            # print repr(data)
-            if len(data) == 4096:
-                if overFlow:
-                    if self.data == '':
-                        self.data = 'OVERFLOW ATTEMPT'
+            try:
+                data = self.conn.recv(4096)
+                # print repr(data)
+                if len(data) == 4096:
+                    if overFlow:
+                        if self.data == '':
+                            self.data = 'OVERFLOW ATTEMPT' + data[0:10]
+                        else:
+                            self.data = ' || OVERFLOW ATTEMPT'+ data[0:10]
+                        break
+                    overFlow = True;
+
+                if '\xff\xf3\xff\xfd\x06' in data :
+                    datarecieved += 'ctrl+\ was pressed'
+                elif "\r\n" in data or '\r\x00' in data :
+
+                    datarecieved = datarecieved + data
+                    datarecieved = datarecieved.replace('\r\n','')
+                    datarecieved = datarecieved.replace('\r\x00','')
+
+                    if i == 0:
+                        if len(datarecieved) > 128:
+                            self.username = datarecieved[0:127]
+                        else:
+                            self.username = datarecieved
+                        if not linux:
+                            self.conn.send('                    ')
+                        self.conn.send('password: ')
+                        i += 1
+                    elif i == 1:
+                        if len(datarecieved) > 128:
+                            self.password = datarecieved[0:127]
+                        else:
+                            self.password = datarecieved
+                        if linux:
+                            self.conn.send('>> ')
+                        else:
+                            self.conn.send('               ')
+                        i += 1
                     else:
-                        self.data = ' || OVERFLOW ATTEMPT'
+                        overFlow = False
+                        if self.data == '':
+                            self.data = datarecieved
+                        else:
+                            self.data = self.data +" || "+ datarecieved
+                        if '\r\x00' in data:
+                            self.conn.send('\nInvalid command\n')
+                        else:
+                            self.conn.send('Invalid command\n')
+                        if linux:
+                            self.conn.send('>> ')
+                        i += 1
+                    datarecieved = ""
+                # first line on connection with linux is this giant string so just removing that nonsense
+                elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
+                    if 0 == i:
+                        linux = False
+                    datarecieved = datarecieved + data
+
+                # these two are ctrl+c in linux and in windows. Easier way to end program. 
+                if i == 12 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
+                    self.lock.acquire()
+                    print self.ip + ':' + str(self.socket) + ': ' + 'Connection terminated.'
+                    self.lock.release()
                     break
-                overFlow = True;
 
-            if '\xff\xf3\xff\xfd\x06' in data :
-                data.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
-            elif "\r\n" in data or '\r\x00' in data :
+                if len(self.data) > 128 :
+                    self.data = self.data[0:127]
+                    break
 
-                datarecieved = datarecieved + data
-                datarecieved = datarecieved.replace('\r\n','')
-                datarecieved = datarecieved.replace('\r\x00','')
-                datarecieved = datarecieved.replace('\xff\xf3\xff\xfd\x06',' ctrl+\\')
-
-                if i == 0:
-                    if len(datarecieved) > 128:
-                        self.username = datarecieved[0:127]
-                    else:
-                        self.username = datarecieved
-                    if not linux:
-                        self.conn.send('                    ')
-                    self.conn.send('password: ')
-                    i += 1
-                elif i == 1:
-                    if len(datarecieved) > 128:
-                        self.password = datarecieved[0:127]
-                    else:
-                        self.password = datarecieved
-                    if linux:
-                        self.conn.send('>> ')
-                    else:
-                        self.conn.send('               ')
-                    i += 1
+            except SocketError as e:
+                if e.errno != errno.ECONNRESET:
+                    raise # Not error we are looking for
                 else:
-                    overFlow = False
                     if self.data == '':
-                        self.data = datarecieved
+                        self.data = "Connection reset by peer"
                     else:
-                        self.data = self.data +" || "+ datarecieved
-                    if '\r\x00' in data:
-                        self.conn.send('\nInvalid command\n')
-                    else:
-                        self.conn.send('Invalid command\n')
-                    if linux:
-                        self.conn.send('>> ')
-                    i += 1
-                datarecieved = ""
-            # first line on connection with linux is this giant string so just removing that nonsense
-            elif not '\xff\xfd\x03\xff\xfb\x18\xff\xfb\x1f\xff\xfb \xff\xfb!\xff\xfb"\xff\xfb\'\xff\xfd\x05\xff\xfb#' == data : 
-                if 0 == i:
-                    linux = False
-                datarecieved = datarecieved + data
-
-            # these two are ctrl+c in linux and in windows. Easier way to end program. 
-            if i == 12 or '\xff\xf4\xff\xfd\x06' == data or '\x03' == data or not data:
-                self.lock.acquire()
-                print self.ip + ':' + str(self.socket) + ': ' + 'Connection terminated.'
-                self.lock.release()
-                break
-
-            if len(self.data) > 128 :
-                self.data = self.data[0:127]
-                break
+                        self.data = self.data +"|| Connection reset by peer"
 
         self.conn.close()
         self.send_output()

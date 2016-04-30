@@ -2,4 +2,4 @@
 http_reader		80	8080 25
 https_reader 	443 17603
 ssh_plugin 		22  4343 111
-telnet_reader	23   25
+telnet_reader	23   100-110

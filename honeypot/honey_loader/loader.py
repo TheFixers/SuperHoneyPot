@@ -54,10 +54,9 @@ def start():
     try:
         # Read through the plugin list and load them with the indicated ports
         lock = threading.Lock()
-        for line in lines:
-            plug = line.pop(0)          #first index is plugin name
-            plugin = __import__(plug)
-            for port in line:
+        for key in lines:         #first index is plugin name
+            plugin = __import__(key)
+            for port in lines[key]:
                 try: 
                     plugins.append(plugin.server_plugin(lock, port))
                 except socket.error as msg:
