@@ -84,18 +84,14 @@ Folder Structure
 
 </pre>
 
-Installation
-------------
+Development
+-----------------------
 <ul>
 <li> Install Python 2.7.11</li>
 <li>You will need to have an instance of MongoDB server installed remotely, and add the access details to the mongoClient.txt configuration file.</li>
 <li> Install dependencies: go to your project directory and type <code>pip -r requirements.txt</code></li>
 <li> Install nose tests if you want to run the tests</li>
 </ul>
-
-Development
------------------------
-put text here.
 
 Deployment
 ----------
