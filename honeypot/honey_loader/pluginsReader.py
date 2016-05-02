@@ -23,11 +23,7 @@ import os
 def lineReader():
 	path = os.path.dirname(os.path.realpath(__file__)).replace("honey_loader", "data_files")
 	text_file = open(path + os.path.sep + "plugins.txt", "r")
-	lines = removeExtraLines(re.split ('\n', text_file.read()))
-	lines = lines_to_line_plus_port(lines)
-	lines = dashes(lines)
-	lines = repeat_check(lines)
-	return lines
+	return removeExtraLines(re.split ('\n', text_file.read()))
 
 """
  removes lines that start with # and blank lines
@@ -37,26 +33,37 @@ def removeExtraLines(lines):
 	for line in lines:
 		if line != '' and line[:1] != '#' and not line.isspace():
 			temp.append(line)
-	return temp
+	return lines_to_line_plus_port(temp)
 
 """
- array example ['http_reader', '80', '1111']
- returns plugin in first lines_to_line_plus_port(position followed by ports to be used by plugin)
+ temp example [['http_reader', '80', '1111'], ...]
+ arr  example {'http_reader' : ['80', '1111'], ...}
+ returns plugin in first plines_to_line_plus_port(osition followed by ports to be used by plugin
 """
 def lines_to_line_plus_port(lines):
 	temp = []
+	arr = {}
 	for line in lines:
 		temp.append(line.split())
-	return temp
+	
+	for line in temp:
+		key = line.pop(0);
+		if key in arr:
+			arr[key] = set(arr[key] + line)
+		else:
+			arr[key] = line
+	return dashes(arr)
 
 """
   Checks to see if there are dashes in between port numbers, and then creates a range of ports to open
+  lines begining  example {'http_reader' : ['80-82', '1111'], ...}
+  lines ending    example {'http_reader' : ['80', '81', '82', '1111'], ...}
+
 """
 def dashes(lines):
-	temp = []
 	lineArray = []
-	for line in lines:
-		for port in line:
+	for key in lines:
+		for port in lines[key]:
 			if '-' in port:
 				ranges = port.split('-')
 				lowerLimit = int(float(ranges[0]))
@@ -70,34 +77,26 @@ def dashes(lines):
 					lineArray.append(str(upperLimit))
 			else:
 				lineArray.append(port)
-		temp.append(lineArray[:])
+		lines[key] = lineArray[:]
 		del lineArray[:]
-	return temp
+	return repeat_check(lines)
 
 """
   Checks the list again for repeats of plugin names or duplicate port numbers.
 """
 def repeat_check(lines):
 	ports = []
-	plugins = []
-	array = []
-	temp = []
-	for line in lines:
-		if not line[0] in plugins:
-			plugins.append(line[0])
-			array.append(line.pop(0))
-			for port in line:
-				if not port in ports:
-					ports.append(port)
-					array.append(port)
-				else:
-					print 'Error: attempted to open port:' + port + ' twice. This is not allowed. Only running first mention.'
-			temp.append(array[:])
-			del array[:]
-		else:
-			print 'Error: attempted to have multiple lines of plugin: ' + line[0] + '. This is not allowed.'
-
-	return temp
+	useablePorts = []
+	for key in lines:
+		for port in lines[key]:
+			if not port in ports:
+				ports.append(port)
+				useablePorts.append(port)
+			else:
+				print 'Error: attempted to open port:' + port + ' twice. This is not allowed. Only running first mention.'
+		lines[key] = useablePorts[:]
+		del useablePorts[:]	
+	return lines
 
 
 if __name__ == '__main__':
