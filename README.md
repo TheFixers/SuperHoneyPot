@@ -84,6 +84,13 @@ Folder Structure
 
 </pre>
 
+Installation and Setup
+-----------------------
+Download and install the current release package from the releases. Use your package installer or command line to install the package python-superhoneypot and any dependencies you may be missing.
+You will need to have an instance of MongoDB server installed remotely.The database name, username, and password info can be whatever you wish, but you must use the collection name clientInfo.
+After install, you will need to modify the configuration files located in your /usr/lib/python2.7/dist-packages/data_files/ folder to match your personal settings.
+Once the package is installed, you will need to turn off the ssh service using command 'sudo service ssh stop'. Then, you may use the command 'sudo honeypot' to start the program.
+
 Development
 -----------------------
 <ul>
