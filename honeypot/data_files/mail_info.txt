@@ -1,4 +1,4 @@
-honeypot4260@gmail.com
-cbenda3@msudenver.edu
-honeypot4260@gmail.com
-Teddybearfood
+SOURCE_EMAIL_ADDRESS
+DESTINATION_EMAIL_ADDRESS
+SERVER_EMAIL_ACCOUNT
+SERVER_ACCOUNT_PASSWORD
