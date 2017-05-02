@@ -1,1 +1,3 @@
-mongodb://HoneyPot:TeddyBearFood123@54.200.61.193:27017/HoneyPot
+mongodb://dbadmin:TeddyBearFood123@52.26.2.115:27017/HoneyPotDB
+
+#config line:: //username:password@databaseIP:port/DBname

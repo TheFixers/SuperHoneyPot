@@ -31,7 +31,7 @@ class honeypot_database_interface():
 
     # this will contain the information needed to connect to the remote database
     db_host = MongoClient(mongoClient, socketTimeoutMS=10000)
-    database = db_host.HoneyPot
+    database = db_host.HoneyPotDB
     mail_server = python_mail.python_mail()
 
     def __init__(self):
@@ -47,8 +47,8 @@ class honeypot_database_interface():
         current_data = json.loads(json_dump_in)
         # data may need to be formatted here, prior to sending to database below
 
-        try:
-            honeypot_database_interface.database.clientInfo.insert_one(current_data).inserted_id
+        try:        #this is where the collection name is specified. clientdata1 in this case
+            honeypot_database_interface.database.clientdata1.insert_one(current_data).inserted_id
         except errors.ServerSelectionTimeoutError:
             self.mail_server.send_mail()
         except errors.NetworkTimeout:
